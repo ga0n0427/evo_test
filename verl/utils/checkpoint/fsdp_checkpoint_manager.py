@@ -12,12 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
+from dataclasses import asdict
 from typing import Optional, Union
 
 import torch
 import torch.distributed as dist
-from torch.distributed.checkpoint.state_dict import StateDictOptions, get_state_dict, set_state_dict
+from peft import PeftModel, get_peft_model_state_dict
+from safetensors.torch import save_file
+from torch.distributed._tensor import DTensor
+from torch.distributed.checkpoint.state_dict import (
+    StateDictOptions,
+    get_model_state_dict,
+    get_state_dict,
+    set_state_dict,
+)
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from transformers import PreTrainedModel, PreTrainedTokenizer, ProcessorMixin
 
@@ -77,27 +87,32 @@ class FSDPCheckpointManager(BaseCheckpointManager):
         if "rng" in extra_state_dict:
             self.load_rng_state(extra_state_dict["rng"])
 
-    def save_checkpoint(self, path: str):
+    def save_checkpoint(self, path: str, save_model_only: bool = False):
         path = self.local_mkdir(path)
         dist.barrier()
 
         # every rank will save its own model and optim shard
-        state_dict_options = StateDictOptions(cpu_offload=True)
-        model_state_dict, optim_state_dict = get_state_dict(self.model, self.optimizer, options=state_dict_options)
-        extra_state_dict = {
-            "lr_scheduler": self.lr_scheduler.state_dict(),
-            "rng": self.get_rng_state(),
-        }
         model_path = os.path.join(path, f"model_world_size_{self.world_size}_rank_{self.rank}.pt")
         optim_path = os.path.join(path, f"optim_world_size_{self.world_size}_rank_{self.rank}.pt")
         extra_path = os.path.join(path, f"extra_state_world_size_{self.world_size}_rank_{self.rank}.pt")
 
-        print(f"[rank-{self.rank}]: Saving model to {os.path.abspath(model_path)}.")
-        print(f"[rank-{self.rank}]: Saving optimizer to {os.path.abspath(optim_path)}.")
-        print(f"[rank-{self.rank}]: Saving extra_state to {os.path.abspath(extra_path)}.")
-        torch.save(model_state_dict, model_path)
-        torch.save(optim_state_dict, optim_path)
-        torch.save(extra_state_dict, extra_path)
+        state_dict_options = StateDictOptions(cpu_offload=True)
+        if save_model_only:
+            model_state_dict = get_model_state_dict(self.model, options=state_dict_options)
+            print(f"[rank-{self.rank}]: Saving model to {os.path.abspath(model_path)}.")
+            torch.save(model_state_dict, model_path)
+        else:
+            model_state_dict, optim_state_dict = get_state_dict(self.model, self.optimizer, options=state_dict_options)
+            extra_state_dict = {
+                "lr_scheduler": self.lr_scheduler.state_dict(),
+                "rng": self.get_rng_state(),
+            }
+            print(f"[rank-{self.rank}]: Saving model to {os.path.abspath(model_path)}.")
+            print(f"[rank-{self.rank}]: Saving optimizer to {os.path.abspath(optim_path)}.")
+            print(f"[rank-{self.rank}]: Saving extra_state to {os.path.abspath(extra_path)}.")
+            torch.save(model_state_dict, model_path)
+            torch.save(optim_state_dict, optim_path)
+            torch.save(extra_state_dict, extra_path)
 
         # wait for everyone to dump to local
         dist.barrier()
@@ -105,9 +120,39 @@ class FSDPCheckpointManager(BaseCheckpointManager):
         if self.rank == 0:
             hf_path = os.path.join(path, "huggingface")
             os.makedirs(hf_path, exist_ok=True)
-            assert isinstance(self.model._fsdp_wrapped_module, PreTrainedModel)
+            assert isinstance(self.model._fsdp_wrapped_module, (PreTrainedModel, PeftModel))
             self.model._fsdp_wrapped_module.config.save_pretrained(hf_path)
             self.model._fsdp_wrapped_module.generation_config.save_pretrained(hf_path)
             self.processing_class.save_pretrained(hf_path)
+
+        if isinstance(self.model._fsdp_wrapped_module, PeftModel):
+            lora_path = os.path.join(path, "lora_adapter")
+            peft_config = {}
+            if self.rank == 0:
+                os.makedirs(lora_path, exist_ok=True)
+                peft_config = asdict(self.model._fsdp_wrapped_module.peft_config.get("default", {}))
+                peft_config["task_type"] = peft_config["task_type"].value
+                peft_config["peft_type"] = peft_config["peft_type"].value
+                peft_config["target_modules"] = list(peft_config["target_modules"])
+
+            sharded_lora_weights = get_peft_model_state_dict(
+                self.model._fsdp_wrapped_module, state_dict=model_state_dict
+            )
+            cuda_device = torch.device("cuda")
+            lora_weights = {
+                name: sharded_weight.to(cuda_device).full_tensor().detach().cpu()
+                if isinstance(sharded_weight, DTensor)
+                else sharded_weight.detach().cpu()
+                for name, sharded_weight in sharded_lora_weights.items()
+            }
+            torch.cuda.empty_cache()
+            if self.rank == 0:
+                save_file(lora_weights, os.path.join(lora_path, "adapter_model.safetensors"))
+                with open(os.path.join(lora_path, "adapter_config.json"), "w", encoding="utf-8") as f:
+                    json.dump(peft_config, f, ensure_ascii=False, indent=4)
+
+            dist.barrier()
+            if self.rank == 0:
+                print(f"[rank-{self.rank}]: Saved LoRA adapter to: {lora_path}")
 
         dist.barrier()

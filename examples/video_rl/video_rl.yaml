@@ -1,0 +1,142 @@
+# Mix-Policy Training Configuration
+# Mix-policy training that combines pre-collected offline trajectories
+# with online generation during RL optimization.
+#
+# Expected data format:
+# Training JSON data should include the following fields for mix-policy:
+# {
+#     "problem": "question text...",
+#     "answer": "ground-truth answer",
+#     "videos": ["path/to/video.mp4"],
+#     "has_offline_trajectory": true,          # Whether a pre-collected trajectory is available
+#     "offline_output": "<think>...</think><answer>A</answer>"  # Pre-collected model output
+# }
+#
+# Mix-policy logic:
+# - Samples with an offline trajectory: generate n-1 online samples + 1 offline trajectory = n total samples
+# - Samples without an offline trajectory: generate n online samples = n total samples
+
+data:
+  train_files: /path/to/your/train_data.jsonl
+  val_files: /path/to/your/val_data.json
+
+  prompt_key: problem
+  answer_key: answer
+  image_key: images
+  video_key: videos
+  use_preprocessed_videos: true
+  video_source_mode: prefer_preprocessed  # prefer_preprocessed | preprocessed_only | realtime_only
+  preprocessed_video_dir: /path/to/your/preprocessed_videos
+  image_dir: null
+
+  video_fps: 2.0
+  video_max_frames: 128
+  max_prompt_length: 20000
+  max_response_length: 4096
+  rollout_batch_size: 256
+  mini_rollout_batch_size: null
+  val_batch_size: 64
+  format_prompt: "examples/video_rl/format_prompt/unified.jinja"
+  override_chat_template: null
+  shuffle: false
+  seed: 42
+  min_pixels: 3136
+  max_pixels: 262144
+  image_max_pixels: 1048576
+  video_max_pixels: 262144
+  filter_overlong_prompts: false
+
+algorithm:
+  adv_estimator: grpo
+  disable_kl: true
+  use_kl_loss: false
+  kl_penalty: low_var_kl
+  kl_coef: 1.0e-2
+  online_filtering: false
+  filter_key: overall
+  filter_low: 0.01
+  filter_high: 0.99
+
+worker:
+  actor:
+    global_batch_size: 256
+    micro_batch_size_per_device_for_update: 1
+    micro_batch_size_per_device_for_experience: 1
+    max_grad_norm: 1.0
+    padding_free: true
+    dynamic_batching: true
+    max_token_len_per_gpu: 24096
+    ulysses_size: 1
+    model:
+      model_path: Qwen/Qwen3-VL-8B-Instruct
+      enable_gradient_checkpointing: true
+      trust_remote_code: false
+      freeze_vision_tower: false
+      lora:
+        rank: 0
+        alpha: 64
+        target_modules: all-linear
+        exclude_modules: .*visual.*
+    optim:
+      lr: 1.0e-6
+      weight_decay: 1.0e-2
+      strategy: adamw
+      lr_warmup_ratio: 0.0
+    fsdp:
+      enable_full_shard: true
+      enable_cpu_offload: false
+      enable_rank0_init: true
+    offload:
+      offload_params: false
+      offload_optimizer: false
+
+  rollout:
+    n: 8  # Total samples: 7 online + 1 offline when offline data exists, otherwise 8 online
+    temperature: 1.0
+    top_p: 1.0
+    limit_images: 5
+    gpu_memory_utilization: 0.8
+    enforce_eager: false
+    enable_chunked_prefill: false
+    tensor_parallel_size: 2
+    max_num_batched_tokens: 25000
+    disable_tqdm: true
+
+    # Mix-policy configuration
+    enable_mix_policy: false  # Enable mix-policy training
+
+    val_override_config:
+      temperature: 0.7
+      top_p: 0.95
+      n: 1
+
+  ref:
+    fsdp:
+      enable_full_shard: true
+      enable_cpu_offload: false
+      enable_rank0_init: true
+    offload:
+      offload_params: false
+
+  reward:
+    reward_function: examples/video_rl/reward_function/video_reward.py:compute_score
+
+trainer:
+  total_epochs: 10
+  max_steps: null
+  project_name: video_rl
+  experiment_name: "video_rl_experiment"
+  logger: ["file","wandb"]
+  nnodes: 1
+  n_gpus_per_node: 8
+  max_try_make_batch: 20
+  val_freq: 10
+  val_before_train: true
+  val_only: false
+  val_generations_to_log: 10
+  save_freq: 20
+  save_limit: 10
+  save_model_only: false
+  save_checkpoint_path: null
+  load_checkpoint_path: null
+  find_last_checkpoint: false

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import torch
@@ -20,11 +20,32 @@ import torch
 from ..protocol import DataProto
 
 
-def reduce_metrics(metrics: Dict[str, List[Any]]) -> Dict[str, Any]:
+def reduce_metrics(metrics: dict[str, list[Any]]) -> dict[str, Any]:
     return {key: np.mean(value) for key, value in metrics.items()}
 
 
-def compute_data_metrics(batch: DataProto, use_critic: bool = False) -> Dict[str, Any]:
+def compute_length_metrics(batch: DataProto) -> dict[str, Any]:
+    max_response_length = batch.batch["responses"].size(-1)
+    max_prompt_length = batch.batch["attention_mask"].size(-1) - max_response_length
+
+    prompt_length = batch.batch["attention_mask"][:, :-max_response_length].sum(-1).float()
+    response_length = batch.batch["attention_mask"][:, -max_response_length:].sum(-1).float()
+
+    return {
+        # response length
+        "response_length/mean": torch.mean(response_length).detach().item(),
+        "response_length/max": torch.max(response_length).detach().item(),
+        "response_length/min": torch.min(response_length).detach().item(),
+        "response_length/clip_ratio": torch.eq(response_length, max_response_length).float().mean().detach().item(),
+        # prompt length
+        "prompt_length/mean": torch.mean(prompt_length).detach().item(),
+        "prompt_length/max": torch.max(prompt_length).detach().item(),
+        "prompt_length/min": torch.min(prompt_length).detach().item(),
+        "prompt_length/clip_ratio": torch.eq(prompt_length, max_prompt_length).float().mean().detach().item(),
+    }
+
+
+def compute_data_metrics(batch: DataProto, use_critic: bool = False) -> dict[str, Any]:
     sequence_score = batch.batch["token_level_scores"].sum(-1)
     sequence_reward = batch.batch["token_level_rewards"].sum(-1)
 
@@ -32,13 +53,7 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = False) -> Dict[str
     returns = batch.batch["returns"]
 
     max_response_length = batch.batch["responses"].size(-1)
-
-    prompt_mask = batch.batch["attention_mask"][:, :-max_response_length].bool()
     response_mask = batch.batch["attention_mask"][:, -max_response_length:].bool()
-
-    max_prompt_length = prompt_mask.size(-1)
-    prompt_length = prompt_mask.sum(-1).float()
-    response_length = response_mask.sum(-1).float()
 
     valid_adv = torch.masked_select(advantages, response_mask)
     valid_returns = torch.masked_select(returns, response_mask)
@@ -49,7 +64,7 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = False) -> Dict[str
         return_diff_var = torch.var(valid_returns - valid_values)
         return_var = torch.var(valid_returns)
 
-    metrics = {
+    return {
         # score
         "critic/score/mean": torch.mean(sequence_score).detach().item(),
         "critic/score/max": torch.max(sequence_score).detach().item(),
@@ -78,27 +93,20 @@ def compute_data_metrics(batch: DataProto, use_critic: bool = False) -> Dict[str
             if use_critic
             else {}
         ),
-        # response length
-        "response_length/mean": torch.mean(response_length).detach().item(),
-        "response_length/max": torch.max(response_length).detach().item(),
-        "response_length/min": torch.min(response_length).detach().item(),
-        "response_length/clip_ratio": torch.mean(torch.eq(response_length, max_response_length).float())
-        .detach()
-        .item(),
-        # prompt length
-        "prompt_length/mean": torch.mean(prompt_length).detach().item(),
-        "prompt_length/max": torch.max(prompt_length).detach().item(),
-        "prompt_length/min": torch.min(prompt_length).detach().item(),
-        "prompt_length/clip_ratio": torch.mean(torch.eq(prompt_length, max_prompt_length).float()).detach().item(),
+        **compute_length_metrics(batch),
     }
-    return metrics
 
 
-def compute_timing_metrics(batch: DataProto, timing_raw: Dict[str, float]) -> Dict[str, Any]:
+def compute_timing_metrics(batch: DataProto, timing_raw: dict[str, float]) -> dict[str, Any]:
     num_response_tokens = torch.sum(batch.batch["response_mask"]).item()
-    num_overall_tokens = sum(batch.meta_info["global_token_num"])
+    # compute num_overall_tokens: use global_token_num if available, otherwise compute from attention_mask
+    if "global_token_num" in batch.meta_info:
+        num_overall_tokens = sum(batch.meta_info["global_token_num"])
+    else:
+        num_overall_tokens = torch.sum(batch.batch["attention_mask"]).item()
     num_tokens_of_section = {
         **dict.fromkeys(["gen", "reward"], num_response_tokens),
+        **dict.fromkeys(["rollout_generate_part", "reward_compute_part"], num_response_tokens),
         **dict.fromkeys(["ref", "old", "values", "adv", "update_critic", "update_actor"], num_overall_tokens),
     }
     return {
@@ -110,7 +118,7 @@ def compute_timing_metrics(batch: DataProto, timing_raw: Dict[str, float]) -> Di
     }
 
 
-def compute_throughout_metrics(batch: DataProto, timing_raw: Dict[str, float], num_gpus: int) -> Dict[str, Any]:
+def compute_throughout_metrics(batch: DataProto, timing_raw: dict[str, float], num_gpus: int) -> dict[str, Any]:
     total_num_tokens = sum(batch.meta_info["global_token_num"])
     time = timing_raw["step"]
     return {

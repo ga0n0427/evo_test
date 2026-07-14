@@ -18,10 +18,11 @@ from functools import partial
 from typing import Callable, Union
 
 import torch
+import torch.distributed.fsdp._traversal_utils as _traversal_utils
 from torch import nn
 from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from torch.distributed.fsdp._runtime_utils import _lazy_init
-from torch.distributed.fsdp.wrap import transformer_auto_wrap_policy
+from torch.distributed.fsdp.wrap import _or_policy, lambda_auto_wrap_policy, transformer_auto_wrap_policy
 from torch.optim import Optimizer
 from transformers import PreTrainedModel
 from transformers.trainer_pt_utils import get_module_class_from_name
@@ -49,11 +50,12 @@ def get_init_fn(model: nn.Module, device: Union[str, torch.device]) -> Callable[
     return init_fn
 
 
-def get_fsdp_wrap_policy(model: PreTrainedModel):
+def get_fsdp_wrap_policy(model: PreTrainedModel, is_lora_model=False):
     """Get FSDP wrap policy for the model.
 
     Args:
         module: The module to get wrap policy for
+        is_lora_model: Whether to enable lambda policy for LoRA modules
     """
     transformer_cls_to_wrap = set()
     for module in model._no_split_modules:
@@ -62,6 +64,20 @@ def get_fsdp_wrap_policy(model: PreTrainedModel):
             raise Exception(f"Cannot find {module} in pretrained model.")
         else:
             transformer_cls_to_wrap.add(transformer_cls)
+
+    if is_lora_model:
+        policies = []
+
+        def lambda_policy_fn(module):
+            return bool(
+                len(list(module.named_children())) == 0
+                and getattr(module, "weight", None) is not None
+                and module.weight.requires_grad
+            )
+
+        policies.append(partial(lambda_auto_wrap_policy, lambda_fn=lambda_policy_fn))
+        policies.append(partial(transformer_auto_wrap_policy, transformer_layer_cls=transformer_cls_to_wrap))
+        return partial(_or_policy, policies=policies)
 
     return partial(transformer_auto_wrap_policy, transformer_layer_cls=transformer_cls_to_wrap)
 
@@ -135,6 +151,40 @@ def load_fsdp_optimizer(optimizer: Optimizer, empty_cache: bool = True):
             for key, value in state.items():
                 if isinstance(value, torch.Tensor):
                     state[key] = value.to("cuda", non_blocking=True)
+
+    if empty_cache:
+        gc.collect()
+
+
+@torch.no_grad()
+def offload_fsdp_submodule(module: FSDP, empty_cache: bool = True):
+    for handle in _traversal_utils._get_fsdp_handles(module):
+        if handle._offload_params:
+            continue
+
+        flat_param = handle.flat_param
+        assert (
+            flat_param.data.data_ptr() == flat_param._local_shard.data_ptr()
+            and id(flat_param.data) != id(flat_param._local_shard)
+            and flat_param.data.size() == flat_param._local_shard.size()
+        )
+        handle.flat_param_to("cpu", non_blocking=True)
+        flat_param._local_shard = flat_param.data
+        assert id(flat_param._local_shard) != id(flat_param.data)
+
+    if empty_cache:
+        torch.cuda.empty_cache()
+
+
+@torch.no_grad()
+def load_fsdp_submodule(module: FSDP, empty_cache: bool = True):
+    for handle in _traversal_utils._get_fsdp_handles(module):
+        if handle._offload_params:
+            continue
+
+        flat_param = handle.flat_param
+        handle.flat_param_to("cuda", non_blocking=True)
+        flat_param._local_shard = flat_param.data
 
     if empty_cache:
         gc.collect()
