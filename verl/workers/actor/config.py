@@ -17,17 +17,37 @@ Actor config
 
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
+
+
+@dataclass
+class LoraConfig:
+    rank: int = 0
+    alpha: int = 64
+    target_modules: str = "all-linear"
+    exclude_modules: Optional[str] = None
+
+    def post_init(self):
+        if not isinstance(self.target_modules, str):
+            raise TypeError("lora.target_modules must be a string like 'all-linear' or 'q_proj,k_proj,v_proj,o_proj'.")
+
+        self.target_modules = self.target_modules.strip()
+        if self.exclude_modules is not None:
+            if not isinstance(self.exclude_modules, str):
+                raise TypeError("lora.exclude_modules must be a string like '.*visual.*'.")
+
+            self.exclude_modules = self.exclude_modules.strip()
 
 
 @dataclass
 class ModelConfig:
     model_path: Optional[str] = None
     tokenizer_path: Optional[str] = None
-    override_config: Dict[str, Any] = field(default_factory=dict)
+    override_config: dict[str, Any] = field(default_factory=dict)
     enable_gradient_checkpointing: bool = True
     trust_remote_code: bool = True
     freeze_vision_tower: bool = False
+    lora: LoraConfig = field(default_factory=LoraConfig)
 
     def post_init(self):
         if self.tokenizer_path is None:
@@ -43,13 +63,14 @@ class ModelConfig:
 @dataclass
 class OptimConfig:
     lr: float = 1e-6
-    betas: Tuple[float, float] = (0.9, 0.999)
+    betas: tuple[float, float] = (0.9, 0.999)
     weight_decay: float = 1e-2
     strategy: str = "adamw"
     lr_warmup_ratio: float = 0.0
+    lr_warmup_steps: Optional[int] = None
     min_lr_ratio: Optional[float] = None
-    warmup_style: str = "constant"
-    """auto keys"""
+    lr_scheduler_type: str = "constant"
+    # below are auto keys
     training_steps: int = field(default=-1, init=False)
 
 
@@ -57,7 +78,7 @@ class OptimConfig:
 class FSDPConfig:
     enable_full_shard: bool = True
     enable_cpu_offload: bool = False
-    enable_rank0_init: bool = False
+    enable_rank0_init: bool = True
     use_orig_params: bool = False
     torch_dtype: Optional[str] = None
     fsdp_size: int = -1
@@ -76,21 +97,40 @@ class OffloadConfig:
 class ActorConfig:
     strategy: str = "fsdp"
     global_batch_size: int = 256
+    """number of samples per minibatch for updating actor"""
     micro_batch_size_per_device_for_update: int = 4
+    """number of samples per forward pass for updating actor"""
     micro_batch_size_per_device_for_experience: int = 16
+    """number of samples per forward pass for computing log probs"""
     max_grad_norm: float = 1.0
+    """number to clip grad norm"""
     clip_ratio_low: float = 0.2
+    """clip ratio in PPO & DAPO"""
     clip_ratio_high: float = 0.3
+    """clip ratio in PPO & DAPO"""
     clip_ratio_dual: float = 3.0
+    """constant C in dual-clip PPO, clips when advantage < -C"""
+    loss_avg_mode: str = "token"
+    """loss average mode: `token`, `seq`"""
+    loss_type: str = "default"
+    """loss type: `default`, `gspo`, `cispo`"""
     ppo_epochs: int = 1
-    padding_free: bool = False
-    ulysses_sequence_parallel_size: int = 1
+    """number of ppo epochs for each rollout batch"""
+    padding_free: bool = True
+    """use padding-free training"""
+    dynamic_batching: bool = True
+    """enable dynamic batching"""
+    max_token_len_per_gpu: Optional[int] = None
+    """max token length per GPU for dynamic batching. If None, use micro_batch_size * max_seq_len"""
+    ulysses_size: int = 1
+    """ulysses sequence parallel size"""
     use_torch_compile: bool = True
+    """enable torch compile"""
     model: ModelConfig = field(default_factory=ModelConfig)
     optim: OptimConfig = field(default_factory=OptimConfig)
     fsdp: FSDPConfig = field(default_factory=FSDPConfig)
     offload: OffloadConfig = field(default_factory=OffloadConfig)
-    """auto keys"""
+    # below are auto keys
     global_batch_size_per_device: int = field(default=-1, init=False)
     disable_kl: bool = field(default=False, init=False)
     use_kl_loss: bool = field(default=False, init=False)
@@ -103,8 +143,10 @@ class RefConfig:
     strategy: str = "fsdp"
     fsdp: FSDPConfig = field(default_factory=FSDPConfig)
     offload: OffloadConfig = field(default_factory=OffloadConfig)
-    """auto keys"""
+    # below are auto keys
     micro_batch_size_per_device_for_experience: int = field(default=-1, init=False)
     padding_free: bool = field(default=False, init=False)
-    ulysses_sequence_parallel_size: int = field(default=1, init=False)
+    dynamic_batching: bool = field(default=False, init=False)
+    max_token_len_per_gpu: Optional[int] = field(default=None, init=False)
+    ulysses_size: int = field(default=1, init=False)
     use_torch_compile: bool = field(default=True, init=False)

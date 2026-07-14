@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import random
 import re
 import shutil
 import tempfile
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import torch
@@ -28,7 +29,7 @@ from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
 from transformers import PreTrainedTokenizer, ProcessorMixin
 
 
-CHECKPOINT_TRACKER = "latest_global_step.txt"
+CHECKPOINT_TRACKER = "checkpoint_tracker.json"
 
 
 class BaseCheckpointManager(ABC):
@@ -90,7 +91,7 @@ class BaseCheckpointManager(ABC):
         return path
 
     @staticmethod
-    def get_rng_state() -> Dict[str, Any]:
+    def get_rng_state() -> dict[str, Any]:
         rng_state = {
             "cpu": torch.get_rng_state(),
             "cuda": torch.cuda.get_rng_state(),
@@ -100,32 +101,11 @@ class BaseCheckpointManager(ABC):
         return rng_state
 
     @staticmethod
-    def load_rng_state(rng_state: Dict[str, Any]):
+    def load_rng_state(rng_state: dict[str, Any]):
         torch.set_rng_state(rng_state["cpu"])
         torch.cuda.set_rng_state(rng_state["cuda"])
         np.random.set_state(rng_state["numpy"])
         random.setstate(rng_state["random"])
-
-
-def find_latest_ckpt_path(path: Optional[str] = None, directory_format: str = "global_step_{}") -> Optional[str]:
-    if path is None:
-        return None
-
-    tracker_file = get_checkpoint_tracker_filename(path)
-    if not os.path.exists(tracker_file):
-        print("Checkpoint tracker file does not exist: %s", tracker_file)
-        return None
-
-    with open(tracker_file, "rb") as f:
-        iteration = int(f.read().decode())
-
-    ckpt_path = os.path.join(path, directory_format.format(iteration))
-    if not os.path.exists(ckpt_path):
-        print("Checkpoint does not exist: %s", ckpt_path)
-        return None
-
-    print("Found checkpoint: %s", ckpt_path)
-    return ckpt_path
 
 
 def get_checkpoint_tracker_filename(root_path: str) -> str:
@@ -135,26 +115,55 @@ def get_checkpoint_tracker_filename(root_path: str) -> str:
     return os.path.join(root_path, CHECKPOINT_TRACKER)
 
 
-def remove_obsolete_ckpt(path: str, global_step: int, save_limit: int = -1, directory_format: str = "global_step_{}"):
+def find_latest_ckpt(
+    path: str, directory_format: str = "global_step_{}"
+) -> tuple[Optional[str], Optional[dict[str, Any]]]:
     """
-    Remove the obsolete checkpoints that exceed the save_limit.
+    Find the latest checkpoint in the save path.
     """
-    if save_limit <= 0:
+    tracker_file = get_checkpoint_tracker_filename(path)
+    if not os.path.exists(tracker_file):
+        return None, None
+
+    with open(tracker_file, "rb") as f:
+        checkpointer_tracker_info = json.load(f)
+
+    ckpt_path = os.path.join(path, directory_format.format(checkpointer_tracker_info["last_global_step"]))
+    if not os.path.exists(ckpt_path):
+        print(f"Checkpoint does not exist: {ckpt_path}")
+        return None, None
+
+    print(f"Found latest checkpoint: {ckpt_path}, will resume from it. Turn off `find_last_checkpoint` to disable it.")
+    return ckpt_path, checkpointer_tracker_info
+
+
+def remove_obsolete_ckpt(
+    path: str, global_step: int, best_global_step: int, save_limit: int = -1, directory_format: str = "global_step_{}"
+):
+    """
+    Remove the obsolete checkpoints that exceed the save limit.
+    """
+    if save_limit <= 0 or not os.path.exists(path):
         return
 
-    if not os.path.exists(path):
-        return
-
+    num_ckpt_to_keep = save_limit - 1  # exclude the current ckpt
     pattern = re.escape(directory_format).replace(r"\{\}", r"(\d+)")
-    ckpt_folders = []
+    ckpt_global_steps = []
     for folder in os.listdir(path):
         if match := re.match(pattern, folder):
             step = int(match.group(1))
             if step < global_step:
-                ckpt_folders.append((step, folder))
+                ckpt_global_steps.append(step)
 
-    ckpt_folders.sort(reverse=True)
-    for _, folder in ckpt_folders[save_limit - 1 :]:
-        folder_path = os.path.join(path, folder)
-        shutil.rmtree(folder_path, ignore_errors=True)
-        print(f"Removed obsolete checkpoint: {folder_path}")
+    ckpt_global_steps.sort(reverse=True)
+    if best_global_step in ckpt_global_steps:  # do not remove the best ckpt
+        ckpt_global_steps.remove(best_global_step)
+        num_ckpt_to_keep = max(num_ckpt_to_keep - 1, 0)
+
+    for step in ckpt_global_steps[num_ckpt_to_keep:]:
+        folder_path = os.path.join(path, directory_format.format(step))
+        try:
+            shutil.rmtree(folder_path, ignore_errors=True)
+            print(f"Removed obsolete checkpoint: {folder_path}")
+        except Exception as e:
+            print(f"Failed to remove {folder_path}: {e}")

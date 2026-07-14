@@ -16,7 +16,7 @@ Rollout config
 """
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 @dataclass
@@ -37,8 +37,18 @@ class RolloutConfig:
     max_model_len: Optional[int] = None
     max_num_batched_tokens: int = 8192
     disable_log_stats: bool = True
-    val_override_config: Dict[str, Any] = field(default_factory=dict)
-    """auto keys"""
+    disable_tqdm: bool = False
+    val_override_config: dict[str, Any] = field(default_factory=dict)
+
+    # Mix-policy 配置
+    # 启用后，对于有预采集轨迹的样本，使用 n-1 个在线生成 + 1 个离线轨迹
+    # 对于没有预采集轨迹的样本，使用 n 个在线生成
+    enable_mix_policy: bool = False
+    # 若设置该阈值，则仅当某个 group（n 个在线样本）的平均 accuracy 低于该阈值时，
+    # 才在 trainer 侧将最后一个在线样本替换为离线轨迹。None 表示沿用原始无条件替换逻辑。
+    mix_policy_accuracy_threshold: Optional[float] = None
+
+    # below are auto keys
     prompt_length: int = field(default=-1, init=False)
     response_length: int = field(default=-1, init=False)
     trust_remote_code: bool = field(default=False, init=False)

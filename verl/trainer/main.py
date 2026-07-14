@@ -13,14 +13,14 @@
 # limitations under the License.
 
 import json
-import os
+
 import ray
 from omegaconf import OmegaConf
 
 from ..single_controller.ray import RayWorkerGroup
 from ..utils.tokenizer import get_processor, get_tokenizer
 from ..workers.fsdp_workers import FSDPWorker
-from ..workers.reward import BatchFunctionRewardManager, SequentialFunctionRewardManager
+from ..workers.reward import AutoRewardManager
 from .config import PPOConfig
 from .data_loader import create_dataloader
 from .ray_trainer import RayPPOTrainer, ResourcePoolManager, Role
@@ -52,29 +52,20 @@ class Runner:
         # define worker classes
         ray_worker_group_cls = RayWorkerGroup
         role_worker_mapping = {
-            Role.ActorRollout: ray.remote(FSDPWorker),
+            Role.ActorRolloutRef: ray.remote(FSDPWorker),
             Role.Critic: ray.remote(FSDPWorker),
-            Role.RefPolicy: ray.remote(FSDPWorker),
         }
         global_pool_id = "global_pool"
         resource_pool_spec = {
             global_pool_id: [config.trainer.n_gpus_per_node] * config.trainer.nnodes,
         }
         mapping = {
-            Role.ActorRollout: global_pool_id,
+            Role.ActorRolloutRef: global_pool_id,
             Role.Critic: global_pool_id,
-            Role.RefPolicy: global_pool_id,
         }
         resource_pool_manager = ResourcePoolManager(resource_pool_spec=resource_pool_spec, mapping=mapping)
 
-        if config.worker.reward.reward_type == "sequential":
-            RewardManager = SequentialFunctionRewardManager
-        elif config.worker.reward.reward_type == "batch":
-            RewardManager = BatchFunctionRewardManager
-        else:
-            raise NotImplementedError(f"Unknown reward type {config.worker.reward.reward_type}.")
-
-        RemoteRewardManager = ray.remote(RewardManager).options(num_cpus=config.worker.reward.num_cpus)
+        RemoteRewardManager = ray.remote(AutoRewardManager).options(num_cpus=config.worker.reward.num_cpus)
         reward_fn = RemoteRewardManager.remote(config.worker.reward, tokenizer)
         val_reward_fn = RemoteRewardManager.remote(config.worker.reward, tokenizer)
 
@@ -99,10 +90,7 @@ class Runner:
 def main():
     cli_args = OmegaConf.from_cli()
     default_config = OmegaConf.structured(PPOConfig())
-    with open('tokens.json', 'r') as f:
-        tokens = json.load(f)
-    os.environ['HF_TOKEN'] = tokens['huggingface']
-    os.environ['WANDB_API_KEY'] = tokens['wandb']
+
     if hasattr(cli_args, "config"):
         config_path = cli_args.pop("config", None)
         file_config = OmegaConf.load(config_path)
@@ -120,13 +108,18 @@ def main():
                 "VLLM_LOGGING_LEVEL": "WARN",
                 "TORCH_NCCL_AVOID_RECORD_STREAMS": "1",
                 "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:False",
-                "PYTHONUNBUFFERED": "1",
+                "CUDA_DEVICE_MAX_CONNECTIONS": "1",
+                "VLLM_ALLREDUCE_USE_SYMM_MEM": "0",
             }
         }
-        ray.init(runtime_env=runtime_env,num_cpus=16)
+        ray.init(runtime_env=runtime_env)
 
     runner = Runner.remote()
     ray.get(runner.run.remote(ppo_config))
+
+    if ppo_config.trainer.ray_timeline is not None:
+        # use `export RAY_PROFILING=1` to record the ray timeline
+        ray.timeline(filename=ppo_config.trainer.ray_timeline)
 
 
 if __name__ == "__main__":

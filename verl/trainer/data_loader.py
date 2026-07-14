@@ -31,12 +31,23 @@ def create_dataloader(config: DataConfig, tokenizer: PreTrainedTokenizer, proces
         prompt_key=config.prompt_key,
         answer_key=config.answer_key,
         image_key=config.image_key,
+        video_key=config.video_key,
+        image_dir=config.image_dir,
+        video_fps=config.video_fps,
+        video_max_frames=config.video_max_frames,
         max_prompt_length=config.max_prompt_length,
         truncation="right",
         format_prompt=config.format_prompt,
-        min_pixels=config.min_pixels,
-        max_pixels=config.max_pixels,
+        image_min_pixels=config.image_min_pixels,
+        image_max_pixels=config.image_max_pixels,
+        video_min_pixels=config.video_min_pixels,
+        video_max_pixels=config.video_max_pixels,
+        video_total_pixels=config.video_total_pixels,
         filter_overlong_prompts=config.filter_overlong_prompts,
+        filter_overlong_prompts_workers=config.filter_overlong_prompts_workers,
+        use_preprocessed_videos=config.use_preprocessed_videos,
+        video_source_mode=config.video_source_mode,
+        preprocessed_video_dir=config.preprocessed_video_dir,
     )
     # use sampler for better ckpt resume
     if config.shuffle:
@@ -46,9 +57,14 @@ def create_dataloader(config: DataConfig, tokenizer: PreTrainedTokenizer, proces
     else:
         sampler = SequentialSampler(data_source=train_dataset)
 
+    if config.mini_rollout_batch_size is not None:
+        train_batch_size = config.mini_rollout_batch_size
+    else:
+        train_batch_size = config.rollout_batch_size
+
     train_dataloader = StatefulDataLoader(
         dataset=train_dataset,
-        batch_size=config.rollout_batch_size,
+        batch_size=train_batch_size,
         sampler=sampler,
         num_workers=8,
         collate_fn=collate_fn,
@@ -63,16 +79,32 @@ def create_dataloader(config: DataConfig, tokenizer: PreTrainedTokenizer, proces
         prompt_key=config.prompt_key,
         answer_key=config.answer_key,
         image_key=config.image_key,
+        video_key=config.video_key,
+        image_dir=config.image_dir,
+        video_fps=config.val_video_fps,
+        video_max_frames=config.val_video_max_frames,
         max_prompt_length=config.max_prompt_length,
         truncation="right",
         format_prompt=config.format_prompt,
-        min_pixels=config.min_pixels,
-        max_pixels=config.max_pixels,
+        image_min_pixels=config.image_min_pixels,
+        image_max_pixels=config.image_max_pixels,
+        video_min_pixels=config.val_video_min_pixels,
+        video_max_pixels=config.val_video_max_pixels,
+        video_total_pixels=config.val_video_total_pixels,
         filter_overlong_prompts=config.filter_overlong_prompts,
+        use_preprocessed_videos=config.use_preprocessed_videos,
+        video_source_mode=config.val_video_source_mode,
+        preprocessed_video_dir=config.val_preprocessed_video_dir,
     )
+
+    if config.val_batch_size == -1:
+        val_batch_size = len(val_dataset)
+    else:
+        val_batch_size = config.val_batch_size
+
     val_dataloader = StatefulDataLoader(
         dataset=val_dataset,
-        batch_size=len(val_dataset) if config.val_batch_size == -1 else config.val_batch_size,
+        batch_size=val_batch_size,
         shuffle=False,
         num_workers=8,
         collate_fn=collate_fn,
