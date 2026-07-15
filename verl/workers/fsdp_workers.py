@@ -45,6 +45,7 @@ from ..protocol import DataProto
 from ..single_controller.base import Worker
 from ..single_controller.base.decorator import Dispatch, register
 from ..utils.checkpoint.fsdp_checkpoint_manager import FSDPCheckpointManager
+from ..utils.lora_train_loader import load_lora_for_training
 from ..utils.dataset import process_image
 from ..utils.multimodal_contract import load_video_tensors_and_metadata
 from ..utils.flops_counter import FlopsCounter
@@ -238,19 +239,26 @@ class FSDPWorker(Worker):
         if is_lora_model:
             self.print_rank0("Applying LoRA to actor module")
             model.enable_input_require_grads()
-            if model_config.lora.target_modules == "all-linear":
-                target_modules = model_config.lora.target_modules
+            if model_config.lora.init_adapter_path:
+                self.print_rank0(f"Loading trainable LoRA: {model_config.lora.init_adapter_path}")
+                model = load_lora_for_training(
+                    model,
+                    model_config.lora.init_adapter_path,
+                )
             else:
-                target_modules = [item.strip() for item in model_config.lora.target_modules.split(",") if item.strip()]
+                if model_config.lora.target_modules == "all-linear":
+                    target_modules = model_config.lora.target_modules
+                else:
+                    target_modules = [item.strip() for item in model_config.lora.target_modules.split(",") if item.strip()]
 
-            lora_config = peft.LoraConfig(
-                task_type=TaskType.CAUSAL_LM,
-                r=model_config.lora.rank,
-                lora_alpha=model_config.lora.alpha,
-                target_modules=target_modules,
-                exclude_modules=model_config.lora.exclude_modules,
-            )
-            model = get_peft_model(model, lora_config)
+                lora_config = peft.LoraConfig(
+                    task_type=TaskType.CAUSAL_LM,
+                    r=model_config.lora.rank,
+                    lora_alpha=model_config.lora.alpha,
+                    target_modules=target_modules,
+                    exclude_modules=model_config.lora.exclude_modules,
+                )
+                model = get_peft_model(model, lora_config)
             for p in model.parameters():
                 if not p.requires_grad:
                     p.data = p.to(torch.bfloat16)

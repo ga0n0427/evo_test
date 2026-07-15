@@ -26,6 +26,7 @@ class LoraConfig:
     alpha: int = 64
     target_modules: str = "all-linear"
     exclude_modules: Optional[str] = None
+    init_adapter_path: Optional[str] = None
 
     def post_init(self):
         if not isinstance(self.target_modules, str):
