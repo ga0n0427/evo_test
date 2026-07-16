@@ -22,7 +22,7 @@ algorithm:
   use_kl_loss: true
   kl_penalty: low_var_kl
   kl_coef: 1.0e-2
-  mock_data: test
+  # mock_data: test  # legacy test-only option; unsupported by the current AlgorithmConfig
 
 worker:
   actor:
@@ -31,7 +31,7 @@ worker:
     micro_batch_size_per_device_for_experience: 8
     max_grad_norm: 1.0
     padding_free: true
-    ulysses_sequence_parallel_size: 1
+    ulysses_size: 1
     model:
       model_path: Qwen/Qwen2.5-7B-Instruct
       enable_gradient_checkpointing: true
@@ -72,7 +72,7 @@ worker:
       offload_params: true
 
   reward:
-    reward_type: batch
+    # reward_type: batch  # reward modules now declare REWARD_TYPE themselves
     reward_function: ./examples/reward_function/math.py:compute_score
 
 trainer:

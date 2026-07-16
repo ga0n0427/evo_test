@@ -35,12 +35,15 @@ class RewardInput(TypedDict):
     problem: Optional[str]
     problem_id: Optional[int]
     video_ref: Optional[dict[str, object]]
+    target_segment: Optional[object]
 
 
 class RewardScore(TypedDict):
     overall: float
     format: Optional[float]
     accuracy: Optional[float]
+    iou: Optional[float]
+    temporal: Optional[float]
 
 
 SequentialRewardFunction = Callable[[RewardInput], RewardScore]
@@ -55,6 +58,7 @@ def _build_reward_input(data: DataProto, response_str: str, response_length: int
     problem = non_tensor["problem_reserved_text"][index] if "problem_reserved_text" in non_tensor else None
     problem_id = non_tensor["problem_id"][index] if "problem_id" in non_tensor else None
     video_ref = non_tensor["multi_modal_data"][index] if "multi_modal_data" in non_tensor else None
+    target_segment = non_tensor["target_segment"][index] if "target_segment" in non_tensor else None
     return {
         "response": response_str,
         "response_length": response_length,
@@ -64,6 +68,7 @@ def _build_reward_input(data: DataProto, response_str: str, response_length: int
         "problem": problem,
         "problem_id": problem_id,
         "video_ref": video_ref,
+        "target_segment": target_segment,
     }
 
 
