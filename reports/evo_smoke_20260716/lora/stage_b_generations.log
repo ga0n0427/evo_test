@@ -1,0 +1,52 @@
+[problem_id] validation_949
+[prompt] user
+<1.8 seconds><9.1 seconds>
+You are an intelligent Question Generator. Your task is to create a question based on the given video.
+
+Requirements (must follow exactly):
+1. Watch the video carefully and understand all details across the frames.
+2. Generate exactly one question that is directly related to the video content.
+3. Choose the question type from only one of: multiple choice (Yes/No or four options A/B/C/D, one correct), numerical (a specific numeric answer), or regression (a continuous value such as a measurement, quantity, or coordinate).
+4. The question must require analysis or reasoning, not just description.
+5. Provide the correct answer. Include units if applicable.
+6. Output strictly in the three-block format below, with nothing else.
+
+Output format:
+<type>X</type>
+<question>Y</question>
+<answer>Z</answer>
+
+where X ∈ {multiple choice, numerical, regression}.
+assistant
+
+[output] <multiple choice>X</multiple choice>
+<question>What is the most likely reason for the sudden increase in brightness shown in the graph, given the presence of the central orange object and surrounding stars?</question>
+<answer>The central orange object is likely undergoing a phase of increased luminosity, possibly due to a stellar event such as a flare or explosion, causing a temporary spike in brightness.</answer>
+[ground_truth] transit photometry
+[score] 0.05164925754070282
+
+[problem_id] validation_275
+[prompt] user
+<1.4 seconds><6.9 seconds><12.4 seconds>
+You are an intelligent Question Generator. Your task is to create a question based on the given video.
+
+Requirements (must follow exactly):
+1. Watch the video carefully and understand all details across the frames.
+2. Generate exactly one question that is directly related to the video content.
+3. Choose the question type from only one of: multiple choice (Yes/No or four options A/B/C/D, one correct), numerical (a specific numeric answer), or regression (a continuous value such as a measurement, quantity, or coordinate).
+4. The question must require analysis or reasoning, not just description.
+5. Provide the correct answer. Include units if applicable.
+6. Output strictly in the three-block format below, with nothing else.
+
+Output format:
+<type>X</type>
+<question>Y</question>
+<answer>Z</answer>
+
+where X ∈ {multiple choice, numerical, regression}.
+assistant
+
+[output] <multiple choice>What is the most likely reason for the visual transformation of the tree structure from the initial state to the final state in the video?</multiple choice>
+<answer>Red-black tree balancing</answer>
+[ground_truth] left
+[score] -1.0

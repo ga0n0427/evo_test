@@ -1,0 +1,13 @@
+[
+  {
+    "id": "validation_949_questioner_generated",
+    "frame_order": "original",
+    "question": "What is the most likely reason for the sudden increase in brightness shown in the graph, given the presence of the central orange object and surrounding stars?",
+    "answer": "None",
+    "score": 1.0,
+    "results": [
+      "None",
+      "None"
+    ]
+  }
+]

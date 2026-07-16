@@ -1,0 +1,15 @@
+{
+  "adapter_a": "/tmp/evo_test_mmvu_lora_20260715_233359/stage_a/global_step_1/actor/lora_adapter",
+  "adapter_b": "/tmp/evo_test_mmvu_lora_20260715_233359/stage_b_lora_only/global_step_1/actor/lora_adapter",
+  "tensor_count": 504,
+  "changed_tensor_count": 504,
+  "max_abs_diff": 1.52587890625e-05,
+  "stage_a_lora_b_max_abs": 1.0013580322265625e-05,
+  "stage_a_positive_grad_norms": [
+    0.8046875
+  ],
+  "stage_b_positive_grad_norms": [
+    0.71875
+  ],
+  "stage_b_loaded_adapter_marker": true
+}

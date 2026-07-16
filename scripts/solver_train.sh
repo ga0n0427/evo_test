@@ -23,6 +23,8 @@ LORA_ALPHA=${LORA_ALPHA:-64}
 LORA_TARGET_MODULES=${LORA_TARGET_MODULES:-all-linear}
 LORA_EXCLUDE_MODULES=${LORA_EXCLUDE_MODULES:-.*visual.*}
 SOLVER_STEPS=${SOLVER_STEPS:-20}
+SOLVER_GENERATION_SAMPLES=${SOLVER_GENERATION_SAMPLES:-9000}
+SOLVER_VIDEO_DATA=${SOLVER_VIDEO_DATA:?Set SOLVER_VIDEO_DATA to the preprocessed video JSON/JSONL file}
 
 SAVE_ROOT="${STORAGE_PATH}/models/${EXPERIMENT_NAME}"
 ACTOR_PATH="${SAVE_ROOT}/global_step_${SOLVER_STEPS}/actor"
@@ -31,7 +33,10 @@ export VLLM_DISABLE_COMPILE_CACHE=1
 
 echo "Generate questions with merged Questioner: ${QUESTIONER_MERGED_MODEL}"
 bash question_generate/question_generate.bash \
-    "${QUESTIONER_MERGED_MODEL}" 1000 "${EXPERIMENT_NAME}"
+    "${QUESTIONER_MERGED_MODEL}" \
+    "${SOLVER_GENERATION_SAMPLES}" \
+    "${EXPERIMENT_NAME}" \
+    "${SOLVER_VIDEO_DATA}"
 
 echo "Create pseudo labels with merged previous Solver: ${SOLVER_EVAL_MERGED_MODEL}"
 bash question_evaluate/evaluate.sh \

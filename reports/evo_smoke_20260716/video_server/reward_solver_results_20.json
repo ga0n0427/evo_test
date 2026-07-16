@@ -1,0 +1,222 @@
+[
+  {
+    "id": "f1d9cbee9b764cc8b7dadacfe33901a3",
+    "frame_order": "original",
+    "question": "The utilized method in the video is called _______.",
+    "answer": "simulation",
+    "score": 1.0,
+    "results": [
+      "simulation",
+      "simulation"
+    ]
+  },
+  {
+    "id": "f1d9cbee9b764cc8b7dadacfe33901a3",
+    "frame_order": "shuffle",
+    "question": "The utilized method in the video is called _______.",
+    "answer": "None",
+    "score": 0.5,
+    "results": [
+      "None",
+      "simulation"
+    ]
+  },
+  {
+    "id": "6ecbd3129dea49cb8a65609ed80ab03c",
+    "frame_order": "original",
+    "question": "During the insertion of nodes in the video, to balance the tree, a ______ rotation is required.",
+    "answer": "None",
+    "score": 0.5,
+    "results": [
+      "None",
+      "left"
+    ]
+  },
+  {
+    "id": "6ecbd3129dea49cb8a65609ed80ab03c",
+    "frame_order": "shuffle",
+    "question": "During the insertion of nodes in the video, to balance the tree, a ______ rotation is required.",
+    "answer": "right",
+    "score": 1.0,
+    "results": [
+      "right",
+      "right"
+    ]
+  },
+  {
+    "id": "7b6de228cd7c43628270e03d96b7820d",
+    "frame_order": "original",
+    "question": "The cognitive science experiment shown in the video is called the ______.",
+    "answer": "\\text{unknown}",
+    "score": 1.0,
+    "results": [
+      "\\text{unknown}",
+      "\\text{unknown}"
+    ]
+  },
+  {
+    "id": "7b6de228cd7c43628270e03d96b7820d",
+    "frame_order": "shuffle",
+    "question": "The cognitive science experiment shown in the video is called the ______.",
+    "answer": "None",
+    "score": 1.0,
+    "results": [
+      "None",
+      "None"
+    ]
+  },
+  {
+    "id": "3bae0f4a5fd34188b6ebd479e3f59eb0",
+    "frame_order": "original",
+    "question": "Based on the two flashcards shown in the video, which literary device is exemplified by the words and images presented?",
+    "answer": "definition",
+    "score": 0.5,
+    "results": [
+      "definition",
+      "None"
+    ]
+  },
+  {
+    "id": "3bae0f4a5fd34188b6ebd479e3f59eb0",
+    "frame_order": "shuffle",
+    "question": "Based on the two flashcards shown in the video, which literary device is exemplified by the words and images presented?",
+    "answer": "synecdoche",
+    "score": 0.5,
+    "results": [
+      "synecdoche",
+      "None"
+    ]
+  },
+  {
+    "id": "552b9c8dfb8d4f49b4f85e59833d2b2c",
+    "frame_order": "original",
+    "question": "What algorithm is being illustrated?",
+    "answer": "\\text{Pre-order traversal}",
+    "score": 0.5,
+    "results": [
+      "\\text{Pre-order traversal}",
+      "None"
+    ]
+  },
+  {
+    "id": "552b9c8dfb8d4f49b4f85e59833d2b2c",
+    "frame_order": "shuffle",
+    "question": "What algorithm is being illustrated?",
+    "answer": "Depth\\ First\\ Search",
+    "score": 0.5,
+    "results": [
+      "Depth\\ First\\ Search",
+      "None"
+    ]
+  },
+  {
+    "id": "554bdc3172034f9b90ffefee546277e9",
+    "frame_order": "original",
+    "question": "The sphincter labeled as the 'cardiac sphincter' in the video is more commonly known in clinical medicine as the _______ sphincter.",
+    "answer": "cardiac",
+    "score": 0.5,
+    "results": [
+      "cardiac",
+      "None"
+    ]
+  },
+  {
+    "id": "554bdc3172034f9b90ffefee546277e9",
+    "frame_order": "shuffle",
+    "question": "The sphincter labeled as the 'cardiac sphincter' in the video is more commonly known in clinical medicine as the _______ sphincter.",
+    "answer": "esophageal",
+    "score": 0.5,
+    "results": [
+      "esophageal",
+      "lower\\ esophageal"
+    ]
+  },
+  {
+    "id": "021c7b92c0134a7e833dbb25209a8d7b",
+    "frame_order": "original",
+    "question": "In patients with the disease shown in the video, dysfunction of _____ would lead to damage to the body’s functioning.",
+    "answer": "None",
+    "score": 0.5,
+    "results": [
+      "None",
+      "cardiac\\ sphincter"
+    ]
+  },
+  {
+    "id": "021c7b92c0134a7e833dbb25209a8d7b",
+    "frame_order": "shuffle",
+    "question": "In patients with the disease shown in the video, dysfunction of _____ would lead to damage to the body’s functioning.",
+    "answer": "cardiac\\ sphincter",
+    "score": 1.0,
+    "results": [
+      "cardiac\\ sphincter",
+      "cardiac\\ sphincter"
+    ]
+  },
+  {
+    "id": "d33a1b9ea7764f528337438a013d9374",
+    "frame_order": "original",
+    "question": "What does the video describe",
+    "answer": "\\text{A physics demonstration involving light and optics}",
+    "score": 0.5,
+    "results": [
+      "\\text{A physics demonstration involving light and optics}",
+      "a\\ physics\\ demonstration\\ involving\\ a\\ laser\\ and\\ a\\ small\\ object"
+    ]
+  },
+  {
+    "id": "d33a1b9ea7764f528337438a013d9374",
+    "frame_order": "shuffle",
+    "question": "What does the video describe",
+    "answer": "None",
+    "score": 0.5,
+    "results": [
+      "None",
+      "\\text{An optical demonstration with a laser and electronic components}"
+    ]
+  },
+  {
+    "id": "e1c1ae4ece2c45c8a04c4818157869de",
+    "frame_order": "original",
+    "question": "Based on the circuits shown sequentially in the video, the ____ circuit has a higher main branch current.",
+    "answer": "parallel",
+    "score": 1.0,
+    "results": [
+      "parallel",
+      "parallel"
+    ]
+  },
+  {
+    "id": "e1c1ae4ece2c45c8a04c4818157869de",
+    "frame_order": "shuffle",
+    "question": "Based on the circuits shown sequentially in the video, the ____ circuit has a higher main branch current.",
+    "answer": "None",
+    "score": 0.5,
+    "results": [
+      "None",
+      "\\text{parallel}"
+    ]
+  },
+  {
+    "id": "d80ad11058834b7e87ffad6e3ef8c53a",
+    "frame_order": "original",
+    "question": "The algorithm being illustrated is ______.",
+    "answer": "None",
+    "score": 1.0,
+    "results": [
+      "None",
+      "None"
+    ]
+  },
+  {
+    "id": "d80ad11058834b7e87ffad6e3ef8c53a",
+    "frame_order": "shuffle",
+    "question": "The algorithm being illustrated is ______.",
+    "answer": "\\text{depth-first search}",
+    "score": 1.0,
+    "results": [
+      "\\text{depth-first search}",
+      "\\text{depth-first search}"
+    ]
+  }
+]

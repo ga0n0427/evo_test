@@ -1,0 +1,53 @@
+{
+  "video_data": "/tmp/evo_window_real10_test/mmvu_preprocessed_16.jsonl",
+  "total_samples": 9000,
+  "window_size": 8,
+  "window_starts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "window_counts": {
+    "0": 1000,
+    "1": 1000,
+    "2": 1000,
+    "3": 1000,
+    "4": 1000,
+    "5": 1000,
+    "6": 1000,
+    "7": 1000,
+    "8": 1000
+  },
+  "compatible_video_count": 10,
+  "skipped_video_count": 0,
+  "video_usage_min": 900,
+  "video_usage_max": 900,
+  "num_shards": 8,
+  "shard_counts": [
+    1125,
+    1125,
+    1125,
+    1125,
+    1125,
+    1125,
+    1125,
+    1125
+  ],
+  "shard_paths": [
+    "/tmp/evo_window_real10_test/generated_question/manifests/real9000/real9000_0.jsonl",
+    "/tmp/evo_window_real10_test/generated_question/manifests/real9000/real9000_1.jsonl",
+    "/tmp/evo_window_real10_test/generated_question/manifests/real9000/real9000_2.jsonl",
+    "/tmp/evo_window_real10_test/generated_question/manifests/real9000/real9000_3.jsonl",
+    "/tmp/evo_window_real10_test/generated_question/manifests/real9000/real9000_4.jsonl",
+    "/tmp/evo_window_real10_test/generated_question/manifests/real9000/real9000_5.jsonl",
+    "/tmp/evo_window_real10_test/generated_question/manifests/real9000/real9000_6.jsonl",
+    "/tmp/evo_window_real10_test/generated_question/manifests/real9000/real9000_7.jsonl"
+  ],
+  "skipped": []
+}
