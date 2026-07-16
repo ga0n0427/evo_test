@@ -42,7 +42,7 @@ echo "Create pseudo labels with merged previous Solver: ${SOLVER_EVAL_MERGED_MOD
 bash question_evaluate/evaluate.sh \
     "${SOLVER_EVAL_MERGED_MODEL}" "${EXPERIMENT_NAME}"
 
-python3 question_evaluate/upload.py \
+python3 -m question_evaluate.upload \
     --repo_name "${EXPERIMENT_NAME}" \
     --max_score 0.8 \
     --min_score 0.3 \

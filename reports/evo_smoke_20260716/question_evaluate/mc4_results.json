@@ -1,0 +1,411 @@
+[
+  {
+    "source_id": "validation_275",
+    "sample_id": "mc_eval_00000000",
+    "manifest_index": 0,
+    "video_pt_path": "/tmp/evo_window_real10_test/preprocessed_videos/8227a6971b4eb1a7.pt",
+    "videos": [
+      "/home/ssun/eval/data/MMVU/videos/Computer_Science/14.mp4"
+    ],
+    "window_start_frame": 5,
+    "window_end_frame_exclusive": 13,
+    "window_source_frame_indices": [
+      28,
+      33,
+      39,
+      44,
+      50,
+      55,
+      61,
+      66
+    ],
+    "segment_start_sec": 4.666666666666667,
+    "segment_end_sec": 11.0,
+    "question_type": "multiple choice",
+    "question": "As the pre-sorted nodes are inserted into the Left-Leaning Red-Black Tree shown in the video, why do red edges appear?\nA. To mark leaf nodes that must be deleted\nB. To maintain tree balance while preserving the left-leaning property\nC. To identify duplicate keys in the tree\nD. To display the order of an in-order traversal",
+    "answer": "B",
+    "score": 0.4,
+    "problem_id": "mc_eval_00000000",
+    "problem": "As the pre-sorted nodes are inserted into the Left-Leaning Red-Black Tree shown in the video, why do red edges appear?\nA. To mark leaf nodes that must be deleted\nB. To maintain tree balance while preserving the left-leaning property\nC. To identify duplicate keys in the tree\nD. To display the order of an in-order traversal",
+    "data_type": "video",
+    "problem_type": "multiple choice",
+    "preprocessed_video": "/tmp/evo_window_real10_test/preprocessed_videos/8227a6971b4eb1a7.pt",
+    "target_segment": [
+      4.666666666666667,
+      11.0
+    ],
+    "questioner_answer": "B",
+    "majority_count": 4,
+    "valid_answer_count": 4,
+    "candidate_answers": [
+      "",
+      "B",
+      "",
+      "",
+      "",
+      "B",
+      "",
+      "",
+      "B",
+      "B"
+    ],
+    "candidate_segments": [
+      [
+        0.0,
+        13.3
+      ],
+      [
+        2.0,
+        13.0
+      ],
+      [
+        0.5,
+        3.0
+      ],
+      [
+        0.5,
+        5.0
+      ],
+      null,
+      [
+        0.0,
+        13.0
+      ],
+      [
+        0.5,
+        13.0
+      ],
+      [
+        0.5,
+        13.0
+      ],
+      [
+        0.0,
+        13.5
+      ],
+      [
+        0.5,
+        13.0
+      ]
+    ],
+    "num_candidates": 10,
+    "solver_responses": [
+      "Step 1: The video begins by displaying a Left-Leaning Red-Black Tree with the text \"Left-Leaning Red-Black Tree insert pre-sorted data.\" This indicates that the video is about inserting pre-sorted data into this specific type of tree.\n\nStep 2: As the pre-sorted nodes (labeled 1 through 10) are inserted one by one, red edges appear between certain nodes. This is a visual representation of the internal structure of the tree as it evolves. The red edges are not used to mark leaves to be deleted, identify duplicates, or display traversal order — these are all incorrect interpretations.\n\nStep 3: In a Left-Leaning Red-Black Tree, the primary goal is to maintain the tree's balance while preserving the left-leaning property. Red edges are used as an internal mechanism to balance the tree. Inserting a node may create an imbalance, and the tree adjusts by coloring edges red or black and rotating to restore balance, all while ensuring that the left-leaning property holds.\n\nStep 4: The red edges appear specifically to indicate that a node has been inserted, and the tree is adjusting to maintain its balanced structure. This is in line with the properties of a Left-Leaning Red-Black Tree, which uses red-black coloring to facilitate rotations and maintain balance.\n\nStep 5: The red edges appear as nodes are inserted, so the most relevant segment of the video to answer this question is from 0:00 to 0:13, as all the nodes are being inserted and red edges are appearing.\n\nFinal Answer: \\boxed{<segment>0.0s-13.3s</segment>}",
+      "Step 1: The video begins with a left-leaning Red-Black Tree and the text “insert pre-sorted data,” indicating that nodes will be added in sorted order.\n\nStep 2: As nodes are inserted, the tree visually updates, with red edges appearing between certain nodes. These red edges are a characteristic of left-leaning Red-Black Trees, where red edges are used to enforce balance properties, specifically by ensuring that no two red edges are adjacent and that every node has a left-leaning property.\n\nStep 3: This is not to mark leaf nodes for deletion (A), nor to identify duplicates (C), nor to display in-order traversal order (D). It is specifically to maintain balance while preserving the tree’s left-leaning structure (B), which is the defining property of left-leaning Red-Black Trees.\n\nStep 4: The red edges appear during the insertion process from 0:02 to 0:13, as nodes are added and the tree reconstructs its structure. The critical visual changes occur during this time frame.\n\nTherefore, the correct answer is B, and the most relevant segment is <segment>2.0s-13.0s</segment>.\n\n\\boxed{B}",
+      "Step 1: The video title indicates that the content is about inserting pre-sorted data into a Left-Leaning Red-Black Tree. In Left-Leaning Red-Black Trees, red edges are used to maintain balance and adhere to the left-leaning property (i.e., the left child of each node is always red or black, and a red edge implies that the left child is red, which helps in balancing the tree).\n\nStep 2: The video shows the insertion of nodes in a pre-sorted order. As each node is added, red edges appear. This is a standard behavior in Left-Leaning Red-Black Trees to ensure the insertion does not create a degenerate tree (i.e., all nodes on one side) and to maintain the left-leaning balance condition.\n\nStep 3: Looking at the video frames: From 0:03 to 0:09, the nodes are inserted one by one, and as they are added, red edges appear between nodes, often indicating that the tree is being rebalanced to maintain its properties. The red edges appear from time 0:04 to 0:08, as the tree is growing with new nodes inserted.\n\nStep 4: The correct answer is that red edges appear to maintain tree balance while preserving the left-leaning property. This is explicitly mentioned in the title and is the standard behavior in Left-Leaning Red-Black Trees.\n\nStep 5: The most relevant time segment to observe the red edges as they appear during insertion is between 0:04 and 0:08, as this is when the tree is being built and red edges are drawn with each insertion.\n\nThus, the final answer is:\n\\boxed{<segment>0.5s-3.0s</segment>}\n\n(Note: The time segment 0.5s-3.0s is the most relevant for observing the appearance of red edges during insertion, as the tree is growing and red edges are being drawn from 0:04 to 0:08. The option is slightly adjusted to match the range provided in the question, but the correct answer must be based on when the red edges first appear, which is around 0:04. Hence, rounding to 0.5s-3.0s gives a safe range encompassing the required visual observation.)",
+      "Step 1: The video begins by showing a Left-Leaning Red-Black Tree with pre-sorted data being inserted. The tree starts with a root node, and as new nodes are added, the tree grows, and red edges are introduced to connect certain nodes.\n\nStep 2: The red edges are not for marking leaf nodes, identifying duplicates, or displaying in-order traversal. Instead, they are a feature of red-black trees to maintain balance, and in the case of left-leaning red-black trees, they ensure that the tree remains left-leaning while maintaining balance.\n\nStep 3: The red edges specifically help in maintaining the tree’s balance by allowing for re balancing through rotations, which are standard operations in red-black tree implementations. The tree is not explicitly balancing for the sake of identifying duplicates in the video.\n\nStep 4: The red edges appear as part of the tree’s structure as nodes are inserted. The reason red edges appear is to maintain tree balance while preserving the left-leaning property.\n\nStep 5: The video segment where the tree is being inserted and red edges appear is from 0:00 to 0:13, and the red edges first become visible around 0:03-0:05. Therefore, the most relevant time segment to answer this question is 0:03-0:05. However, since the question is asking for the segment with the most relevance to the answer, and the red edges are introduced as the tree is being built, 0:05 is a good marker point.\n\nFinal Answer: \\boxed{<segment>0.5s-5.0s</segment>}",
+      "Step 1: The video demonstrates the insertion of pre-sorted data into a Left-Leaning Red-Black Tree. The tree is constructed with specific properties: all leaves are null (not shown), and every red edge must be a left child of its parent. This is known as the left-leaning property.\n\nStep 2: Red edges are introduced during insertion to maintain the tree’s balance. When inserting nodes in sorted order, the standard binary search tree would become unbalanced — with left-leaning red edges helping to keep the tree balanced. The red color is not for deletion, identification of duplicates, or traversal order — it is a structural tool for balance.\n\nStep 3: By the time segments 0:06-0:13, the tree structure has evolved, with red edges appearing and disappearing as the tree adjusts to maintain balance. These red edges serve to indicate where rotations and color flips are needed to uphold the left-leaning red-black properties, which guarantee logarithmic height and balanced tree structure.\n\nStep 4: The correct answer is B. To maintain tree balance while preserving the left-leaning property.\n\n<segment>0:06-0:13</segment>",
+      "Step 1: The video begins by showing a Left-Leaning Red-Black Tree with a caption “insert pre-sorted data,” indicating that the process involves inserting nodes in a sorted order. The tree is initially empty, and nodes are added one by one.\n\nStep 2: As nodes are inserted, the video visualizes the tree evolving. Each new node connects to its parent, and the tree adjusts its structure. Red edges appear during this process. This is a key characteristic of Left-Leaning Red-Black Trees — red edges are used to enforce the left-leaning property and maintain balance.\n\nStep 3: The red edges are not used to mark leaf nodes (A), identify duplicates (C), or display in-order traversal (D). Instead, they are part of the tree’s balancing mechanism. The left-leaning property requires that every red edge must point to a left child, and red edges help maintain the tree’s balance by allowing the tree to be taller in the left direction while still remaining balanced overall.\n\nStep 4: The red edges appear during the insertion process, which is visibly shown from 0:00 to 0:13. The most relevant time segment for understanding why red edges appear is when the tree is being constructed and nodes are added, during which you can see the red edges forming as the tree balances itself.\n\nFinal Answer: \\boxed{B} <segment>0.0s-13.0s</segment>",
+      "The video demonstrates the insertion of pre-sorted data into a Left-Leaning Red-Black Tree. In such trees, red edges are used to enforce the left-leaning property and to maintain balance. Red edges help ensure that the tree remains balanced without violating the left-leaning property, and they are not used to mark leaves, identify duplicates, or display in-order traversal order. The visual representation in the video shows red edges appearing as nodes are inserted, aligning with the purpose of maintaining balance while preserving the left-leaning structure.\n\n<segment>0.5s-13.0s</segment>",
+      "Step 1: The video demonstrates the insertion of pre-sorted data into a Left-Leaning Red-Black Tree. This is a specific type of balanced binary search tree where all red edges must point left (hence \"left-leaning\"), and red-black properties (like no two red nodes adjacent, etc.) are maintained for balance.\n\nStep 2: As nodes are inserted, the tree adjusts by rotating and coloring edges. The appearance of red edges is not accidental — they are a deliberate mechanism.\n\nStep 3: Red edges serve to temporarily mark a connection that will be adjusted to maintain the tree's balance. In left-leaning red-black trees, red edges indicate that the path going left is \"longer,\" which can be exploited in rotations to balance the tree, without violating the \"left-leaning\" constraint.\n\nStep 4: The red edges are introduced and used to enforce the left-leaning property, ensuring that if a node's right child is red, the red edge must be adjusted by rotation to maintain balance. Thus, the red edges are a tool to maintain tree balance while preserving the \"left-leaning\" structure.\n\nStep 5: Looking at the video, the first red edge appears at around 0:05, as the tree grows and nodes are inserted. The red edges are not for leaf deletion (A), not for identifying duplicates (C), and not for in-order display (D), which is a traversal rather than an edge color.\n\nStep 6: The segment where this mechanism is demonstrated is between 0:05 and 0:13, as the tree is being built with red edges appearing as nodes are inserted and balanced.\n\nTherefore, the correct answer is B. To maintain tree balance while preserving the left-leaning property.\n\n<segment>0.5s-13.0s</segment>",
+      "The video demonstrates the insertion of pre-sorted data into a Left-Leaning Red-Black Tree. The key characteristic of a Left-Leaning Red-Black Tree is that it maintains balance by ensuring all red links lean left and all black links lean right. Red edges are used as a visual cue to indicate that a node is red, which helps in maintaining the balance of the tree without violating the left-leaning property. This is a standard design choice in such data structures to simplify the insertion and balancing logic. Hence, red edges appear to maintain tree balance while preserving the left-leaning property.\n\nThe video begins with a minimal tree structure and gradually adds nodes in pre-sorted order, with red edges appearing as the tree grows. This process is clearly demonstrated from 0:00 to 0:13, during which the red links are introduced as part of the balancing algorithm.\n\n<segment>0.0s-13.5s</segment>\n\nFinal Answer: \\boxed{B}",
+      "Step 1: The video demonstrates the insertion of pre-sorted data into a Left-Leaning Red-Black Tree. The term \"Left-Leaning\" implies that all red edges point to the left, and the tree maintains balance through a specific rule set involving red and black nodes.\n\nStep 2: Red edges in a Left-Leaning Red-Black Tree are not used to mark leaves for deletion, identify duplicates, or show in-order traversal order. Instead, they are a mechanism to ensure balance and to adhere to the left-leaning property, which requires that no red edge has a red sibling.\n\nStep 3: As nodes are added in pre-sorted order, red edges emerge during the insertion procedure to maintain balance and ensure that the tree stays left-leaning, as the insertion of nodes from a sorted sequence naturally creates the need for balancing through color toggling (a standard feature in Left-Leaning Red-Black Trees).\n\nStep 4: Observing the video from 0:02 to 0:13, red edges appear dynamically as nodes are inserted, and they visibly indicate the balancing operations.\n\nStep 5: The correct answer, therefore, is B. To maintain tree balance while preserving the left-leaning property.\n\nFinal Answer: \\boxed{B} with the most relevant video segment being <segment>0.5s-13.0s</segment>."
+    ]
+  },
+  {
+    "source_id": "validation_212",
+    "sample_id": "mc_eval_00000001",
+    "manifest_index": 1,
+    "video_pt_path": "/tmp/evo_window_real10_test/preprocessed_videos/4c60e00806aeeb17.pt",
+    "videos": [
+      "/home/ssun/eval/data/MMVU/videos/Clinical_Medicine/8.mp4"
+    ],
+    "window_start_frame": 2,
+    "window_end_frame_exclusive": 10,
+    "window_source_frame_indices": [
+      48,
+      72,
+      96,
+      120,
+      144,
+      168,
+      191,
+      215
+    ],
+    "segment_start_sec": 2.0,
+    "segment_end_sec": 8.958333333333334,
+    "question_type": "multiple choice",
+    "question": "What is the primary function of the mucus layer shown lining the stomach in the video?\nA. To absorb nutrients directly into the bloodstream\nB. To protect the stomach lining from acid and digestive enzymes\nC. To regulate contractions of the heart\nD. To produce bile for fat digestion",
+    "answer": "B",
+    "score": 0.4,
+    "problem_id": "mc_eval_00000001",
+    "problem": "What is the primary function of the mucus layer shown lining the stomach in the video?\nA. To absorb nutrients directly into the bloodstream\nB. To protect the stomach lining from acid and digestive enzymes\nC. To regulate contractions of the heart\nD. To produce bile for fat digestion",
+    "data_type": "video",
+    "problem_type": "multiple choice",
+    "preprocessed_video": "/tmp/evo_window_real10_test/preprocessed_videos/4c60e00806aeeb17.pt",
+    "target_segment": [
+      2.0,
+      8.958333333333334
+    ],
+    "questioner_answer": "B",
+    "majority_count": 4,
+    "valid_answer_count": 6,
+    "candidate_answers": [
+      "0.0s-5.0s",
+      "",
+      "0.0s-0.2s",
+      "B",
+      "",
+      "",
+      "B",
+      "",
+      "B",
+      "B"
+    ],
+    "candidate_segments": [
+      null,
+      [
+        0.0,
+        6.0
+      ],
+      null,
+      [
+        0.0,
+        5.0
+      ],
+      [
+        0.0,
+        5.0
+      ],
+      [
+        0.0,
+        3.0
+      ],
+      [
+        0.0,
+        2.0
+      ],
+      [
+        0.0,
+        3.0
+      ],
+      [
+        0.0,
+        5.0
+      ],
+      [
+        0.0,
+        2.5
+      ]
+    ],
+    "num_candidates": 10,
+    "solver_responses": [
+      "Step 1: The video starts by showing a stylized stomach with a mucus layer covering its inner surface. At 0:02, the word \"mucus\" is explicitly labeled on the stomach lining. This indicates that the mucus is a key structural component, not a digestive enzyme or nutrient.\n\nStep 2: The video then shows the stomach filled with blue liquid, which represents gastric juice containing hydrochloric acid and digestive enzymes. The mucus layer is shown covering this acidic environment, which is a known protective mechanism in the human body.\n\nStep 3: The labels \"esophagus\" and \"cardiac sphincter\" appear at 0:12, which are related to the entrance of food into the stomach, but the question is about the function of the mucus in the stomach, not the surrounding structures.\n\nStep 4: Among the options, only option B correctly describes the protective function of mucus. Mucus acts as a barrier against the harsh gastric acid and enzymes, preventing damage to the stomach's epithelial cells. This is a well-established physiological fact and directly relates to the visual emphasis on the mucus layer.\n\nStep 5: The most relevant segment to answer this question is from 0:00 to 0:05, as the mucus is introduced and labeled, and the stomach begins to be shown filled with gastric juices, which directly contextualizes the protective role of mucus.\n\nFinal Answer: \\boxed{0.0s-5.0s}",
+      "Step 1: The video begins by showing a stylized stomach with a labeled mucus layer. Mucus is a well-known biological substance secreted by epithelial cells lining the stomach.\n\nStep 2: The primary biological role of mucus in the stomach is to act as a protective barrier. It shields the stomach lining from the corrosive effects of gastric acid and digestive enzymes, preventing damage to the tissue.\n\nStep 3: Options A, C, and D are incorrect because mucus does not absorb nutrients, regulate heart contractions, or produce bile. These are functions of other organs or substances.\n\nStep 4: The video shows the mucus layer from 0:00 to 0:06. Although the mucus is not directly explained verbally in these frames, the question is about its primary function, and the mucus layer is visually presented alongside the stomach, which is biologically known to have this protective role.\n\nStep 5: Therefore, the correct answer is B, and the video segment most relevant to this question is <segment>0.0s-6.0s</segment>.\n\n\\boxed{<segment>0.0s-6.0s</segment>}",
+      "The video begins by showing a stylized stomach with a mucus layer, labeled \"mucus\" (0:00-0:02), and then transitions to show the stomach filled with liquid, implying gastric contents, while also labeling the esophagus and cardiac sphincter (0:10-0:14). The mucus layer is anatomically known to act as a protective barrier against the acidic environment of the stomach. Although the video doesn't explicitly state this, its representation of the mucus layer as a surface coating on the stomach, followed by the display of gastric acid, implies its protective role. Among the multiple-choice options, option B accurately reflects the biological function of gastric mucus. The most relevant segment for this context is where the mucus is visually presented and labeled, specifically from 0:00 to 0:02.\n\n\\boxed{0.0s-0.2s}",
+      "Step 1: In the video, from 0:00 to 0:05, a stylized stomach is shown with the word \"mucus\" labeled inside it, indicating that it is covered with a mucus layer. This is a standard anatomical representation where mucus is known to serve protective functions.\n\nStep 2: The primary function of the mucus layer in the stomach is to act as a protective barrier. It coats the stomach lining, preventing direct contact with the harsh gastric acids and digestive enzymes that would otherwise cause damage or erosion. This is a well-established biological fact and is clearly implied by the visual labeling.\n\nStep 3: The other options are incorrect: A is false because mucus does not absorb nutrients. C is irrelevant as the cardiac sphincter does not control heart contractions but rather regulates passage between esophagus and stomach. D is false because bile is produced in the liver and stored in the gallbladder, not the stomach, and is not directly related to mucus.\n\nStep 4: The most relevant segment for answering this question is from 0:00 to 0:05, as it introduces the mucus and its context.\n\nFinal Answer: \\boxed{B} <segment>0.0s-5.0s</segment>",
+      "Step 1: The video begins by showing a stylized stomach with the word \"mucus\" labeled on its inner lining, indicating that the mucus layer is a key anatomical feature.\n\nStep 2: The mucus is visually depicted as a protective coating, shown covering the stomach's inner surface. This is a standard anatomical representation of gastric mucus, which serves to protect the stomach wall from the corrosive effects of gastric acid and digestive enzymes.\n\nStep 3: The mucus is not shown to have any other functions such as nutrient absorption (eliminating option A), regulating heart contractions (eliminating option C), or producing bile (eliminating option D). These are all unrelated to the gastric mucus function.\n\nStep 4: The video segment from 0:00 to 0:05 specifically focuses on the stomach and the mucus layer, making it the most relevant time to understand the function of the mucus.\n\nFinal Answer: \\boxed{<segment>0.0s-5.0s</segment>}\n\nThe primary function of the mucus layer shown lining the stomach in the video is to protect the stomach lining from acid and digestive enzymes.",
+      "Step 1: The video begins by showing a stylized stomach with a mucus layer depicted as a dotted pattern covering its inner surface. The word \"mucus\" is explicitly labeled on the stomach, indicating its identity.\n\nStep 2: The primary biological function of mucus in the stomach is well known to be protective. It acts as a barrier that shields the stomach lining from the harsh acidic environment and digestive enzymes (like pepsin) that would otherwise damage the tissue. This protective function is a standard educational concept in human anatomy and physiology.\n\nStep 3: The other answer choices are incorrect. Absorption of nutrients is not the role of mucus (that's the function of the small intestine). Mucus does not regulate heart contractions—those are managed by the cardiac muscle and the autonomic nervous system. Bile production is carried out by the liver and stored in the gallbladder, not by the stomach.\n\nStep 4: The video’s segment from 0:00 to 0:03 visually presents the mucus layer and labels it, making it the most relevant segment for answering the question.\n\nFinal Answer: \\boxed{<segment>0.0s-3.0s</segment>}",
+      "The video begins by showing a stylized stomach with a mucus layer (0:00–0:02). In human physiology, the mucus layer in the stomach is essential for protecting the gastric mucosa from the corrosive effects of hydrochloric acid and digestive enzymes. This function is not related to nutrient absorption (A), heart contractions (C), or bile production (D). The mucus acts as a protective barrier. The segment showing the mucus layer (0:00–0:02) is the most relevant for answering the question, as it visually introduces the mucus and the context of the stomach's inner lining.\n\n<segment>0.0s-2.0s</segment>\n\nFinal Answer: \\boxed{B}",
+      "Step 1: The video starts by showing a stylized stomach with the word \"mucus\" inside, indicating the presence of a mucus layer. The mucus layer is depicted as a dotted pattern covering the inner surface of the stomach.\n\nStep 2: The mucus layer is shown to be a protective barrier. In medical and biological contexts, the mucus layer in the stomach is known to protect the mucosal lining from the corrosive effects of gastric acid and digestive enzymes.\n\nStep 3: Options A, C, and D are incorrect because mucus does not absorb nutrients, regulate heart contractions, or produce bile. Therefore, the correct answer must be B.\n\nStep 4: The relevant segment of the video for this question is from 0:00 to 0:03, when the mucus layer is introduced and shown on the stomach, as this is when the primary function of the mucus layer is visually presented.\n\n<segment>0.0s-3.0s</segment>",
+      "Step 1: The video begins with a depiction of the stomach, showing a layer labeled \"mucus\" covering its inner surface. This mucus is depicted as a protective, dotted layer.\n\nStep 2: The mucus layer is then shown to be a barrier that is replaced by a fluid (likely gastric juice) that is labeled with a blue color, which typically represents stomach acid or digestive enzymes.\n\nStep 3: The primary biological function of gastric mucus is to protect the stomach lining from the corrosive effects of stomach acid and pepsin (a digestive enzyme), preventing damage to the stomach wall.\n\nStep 4: Option A is incorrect because mucus does not directly absorb nutrients. Option C is incorrect because the heart is not involved in stomach function; the cardiac sphincter is a structure between the esophagus and stomach. Option D is incorrect because bile is produced by the liver and stored in the gallbladder, not by the stomach.\n\nStep 5: The most relevant segment to answer this question is where the mucus layer is shown and its context within the stomach, which is from 0:00 to 0:05, as the mucus is introduced and then replaced by acid.\n\nFinal Answer: \\boxed{B} <segment>0.0s-5.0s</segment>",
+      "Step 1: The video begins by showing a stomach with a mucus layer. The mucus layer is depicted as a textured, protective coating on the stomach's inner surface.\n\nStep 2: In biological contexts, the mucus layer in the stomach is well-known for its protective role. It acts as a barrier against the corrosive effects of gastric acid and digestive enzymes, preventing damage to the stomach lining.\n\nStep 3: Option A is incorrect because mucus does not absorb nutrients; that is the function of the intestinal lining.\n\nStep 4: Option C is incorrect because the cardiac sphincter controls the passage of food into the stomach and does not regulate heart contractions.\n\nStep 5: Option D is incorrect because bile is produced by the liver and stored in the gallbladder; it is not produced by or related to the mucus layer.\n\nStep 6: The relevant time segment in the video is when the mucus layer is shown, which occurs from 0:00 to 0:02, as it is the initial focus and has not yet transitioned to other structures like the esophagus or cardiac sphincter.\n\nFinal Answer: \\boxed{B} <segment>0.0s-2.5s</segment>"
+    ]
+  },
+  {
+    "source_id": "validation_113",
+    "sample_id": "mc_eval_00000002",
+    "manifest_index": 2,
+    "video_pt_path": "/tmp/evo_window_real10_test/preprocessed_videos/6e64cce4bb232d69.pt",
+    "videos": [
+      "/home/ssun/eval/data/MMVU/videos/Computer_Science/4.mp4"
+    ],
+    "window_start_frame": 8,
+    "window_end_frame_exclusive": 16,
+    "window_source_frame_indices": [
+      319,
+      359,
+      399,
+      439,
+      479,
+      519,
+      559,
+      599
+    ],
+    "segment_start_sec": 10.633333333333333,
+    "segment_end_sec": 19.966666666666665,
+    "question_type": "multiple choice",
+    "question": "What is the value of the tree node that becomes highlighted in the final frame of the video?\nA. 3\nB. 5\nC. 7\nD. 9",
+    "answer": "C",
+    "score": 0.6,
+    "problem_id": "mc_eval_00000002",
+    "problem": "What is the value of the tree node that becomes highlighted in the final frame of the video?\nA. 3\nB. 5\nC. 7\nD. 9",
+    "data_type": "video",
+    "problem_type": "multiple choice",
+    "preprocessed_video": "/tmp/evo_window_real10_test/preprocessed_videos/6e64cce4bb232d69.pt",
+    "target_segment": [
+      10.633333333333333,
+      19.966666666666665
+    ],
+    "questioner_answer": "C",
+    "majority_count": 6,
+    "valid_answer_count": 6,
+    "candidate_answers": [
+      "C",
+      "C",
+      "C",
+      "",
+      "C",
+      "C",
+      "",
+      "C",
+      "",
+      ""
+    ],
+    "candidate_segments": [
+      null,
+      [
+        14.5,
+        19.0
+      ],
+      null,
+      [
+        14.0,
+        19.3
+      ],
+      [
+        2.0,
+        2.5
+      ],
+      [
+        0.09,
+        0.12
+      ],
+      [
+        1.7,
+        2.0
+      ],
+      [
+        5.0,
+        6.0
+      ],
+      [
+        2.8,
+        3.5
+      ],
+      [
+        16.0,
+        19.0
+      ]
+    ],
+    "num_candidates": 10,
+    "solver_responses": [
+      "Step 1: The video starts with a tree structure where the root node is labeled '5'. There are multiple nodes below it, with values 2, 8, 1, 4, 6, 3, and 7.\n\nStep 2: At 0.0s, the root node '5' is highlighted in red. \n\nStep 3: At 1.0s, the node '8' becomes highlighted in red.\n\nStep 4: At 2.0s, the node '2' becomes highlighted in red.\n\nStep 5: At 3.0s, the node '4' becomes highlighted in red.\n\nStep 6: At 4.0s, the node '6' becomes highlighted in red.\n\nStep 7: At 5.0s, the node '7' becomes highlighted in green.\n\nTherefore, the final highlighted node, at 5.0s, is '7'.\n\nThe most relevant time segment for answering the question about the value of the tree node that becomes highlighted in the final frame is 5.0s.\n\nThe final answer is \\boxed{C}.",
+      "The video shows a tree structure with nodes having values 5, 2, 8, 1, 4, 6, 3, and 7. The highlighting process begins at the root node (5) and proceeds downward. At 0:03, node 5 is highlighted red. At 0:05, node 2 is highlighted red. At 0:07, node 8 is highlighted red. At 0:09, node 4 is highlighted red. At 0:11, node 6 is highlighted red. At 0:13, node 7 is highlighted red. The final frame, at 0:15, shows node 7 highlighted green. Therefore, the value of the tree node that becomes highlighted in the final frame is 7.\n\nThe video time segment most relevant to answering this question is when the final node is highlighted, which is at 0:15. This corresponds to the end of the sequence of highlights.\n\nFinal answer: $\\boxed{C}$ 7\n\n<segment>14.5s-19.0s</segment>",
+      "Step 1: Observe the video frames to determine the sequence of highlighting.\n- Frame 0.0s: The tree is displayed with all nodes in gray.\n- Frame 0.3s: Node 5 (root) becomes highlighted in red.\n- Frame 0.6s: Node 2 (left child of root) becomes highlighted in red.\n- Frame 0.9s: Node 4 (child of node 2) becomes highlighted in red.\n- Frame 1.2s: Node 3 (left child of node 4) becomes highlighted in red.\n- Frame 1.5s: Node 6 (right child of node 5) becomes highlighted in red.\n- Frame 1.8s: Node 7 (child of node 6) becomes highlighted in red.\n- Frame 2.1s: Node 7 (right child of node 6) becomes highlighted in green. This is the final frame.\n\nStep 2: Identify the value of the node that is highlighted in the final frame.\n- The final frame (2.1s) shows node 7 highlighted in green.\n\nStep 3: Match the value of the highlighted node with the given options.\n- The value of node 7 is 7.\n\nStep 4: Confirm the time segment relevant to answering the question.\n- The final frame where node 7 is highlighted is at 2.1s. Therefore, the most relevant time segment is 2.1s-2.1s.\n\nFinal Answer: The value of the tree node that becomes highlighted in the final frame is 7. The time segment most relevant is <segment>2.1s-2.1s</segment>.\n\nAnswer: \\boxed{C}",
+      "In the video, the highlighting sequence is as follows:\n- At 0:03, node 5 is highlighted.\n- At 0:06, node 8 is highlighted.\n- At 0:08, node 2 is highlighted.\n- At 0:10, node 4 is highlighted.\n- At 0:12, node 6 is highlighted.\n- At 0:14, node 7 is highlighted.\nThus, the final highlighted node is 7, and the correct answer is C. 7.\n\nThe most relevant time segment for this question is when node 7 is highlighted, which occurs at 0:14.\n\n<segment>14.0s-19.3s</segment>",
+      "Step 1: Observe the initial state of the tree. The tree has nodes with values 5, 2, 8, 1, 4, 6, 3, and 7. The root is 5, with children 2 and 8. Node 2 has children 1 and 4; node 4 has children 3. Node 8 has child 6; node 6 has child 7.\n\nStep 2: Track the highlighting process. At 0.7s, node 5 is highlighted (red). At 1.0s, node 2 is highlighted. At 1.4s, node 4 is highlighted. At 2.2s, node 7 is highlighted (green).\n\nStep 3: Determine the final highlighted node. The last highlighted node in the final frame (at 2.2s) is node 7, which is green.\n\nStep 4: Match the value to the options. The value of node 7 is 7, which corresponds to option C.\n\nStep 5: Identify the relevant time segment. The final highlight occurs at 2.2s, so the most relevant segment is 2.0s-2.5s, which captures the final state of the video.\n\nFinal Answer: \\boxed{C} with time segment <segment>2.0s-2.5s</segment>.",
+      "Step 1: Observe the video frames.\nAt 0:00, the tree structure is shown with nodes 5, 2, 8, 1, 4, 6, 3, and 7.\nAt 0:03, node 5 turns red, indicating it is being highlighted.\nAt 0:06, node 2 turns red.\nAt 0:09, node 4 turns red.\nAt 0:12, node 7 turns green, which is the final highlighted node.\nStep 2: Determine the value of the final highlighted node.\nThe node that becomes highlighted in the final frame is node 7, which has a value of 7.\nStep 3: Identify the relevant time segment.\nThe final highlight occurs at 0:12, which falls within the time segment 0:09-0:12.\nTherefore, the answer is C. 7, with the most relevant time segment being 0:09-0:12.\n\\boxed{C} with <segment>0.09s-0.12s</segment>",
+      "The video shows a tree with nodes having values 1, 2, 3, 4, 5, 6, 7, and 8. The highlighting progresses as follows:\n- At 0.0s, the root node (5) is highlighted.\n- At 0.3s, the node with value 5 is highlighted again, suggesting a reset or emphasis.\n- At 1.0s, the node with value 2 is highlighted.\n- At 1.7s, the node with value 4 is highlighted.\n- At 1.9s, the node with value 3 is highlighted.\n- At 2.4s, the node with value 7 is highlighted.\nSince 7 is the value of the node that becomes highlighted in the final frame (at 2.4s), and 2.4s falls within the 1.7s to 2.0s segment, the answer is C. 7.\n\n<segment>1.7s-2.0s</segment>",
+      "The video shows a binary tree with nodes labeled 5, 2, 8, 1, 4, 6, 3, and 7. The highlighting sequence begins with the root node 5 (at 0.0s), then moves to node 2 (at 1.0s), then to node 8 (at 2.0s), then to node 4 (at 3.0s), then to node 6 (at 4.0s), and finally to node 7 (at 5.0s). The final frame shows node 7 highlighted in green, meaning it is the last node to be highlighted.\n\nTherefore, the value of the tree node that becomes highlighted in the final frame is 7.\n\nThe most relevant time segment to answer this question is when node 7 is highlighted, which is at 5.0s.\n\nFinal answer: \\boxed{C}\n<segment>5.0s-6.0s</segment>",
+      "Step 1: Observe the video frames sequentially.\n- At 0.0s, the tree is shown with all nodes having grey color.\n- At 0.7s, the root node (value 5) turns red.\n- At 1.4s, the left child of the root (value 2) turns red.\n- At 2.1s, the node with value 4 turns red.\n- At 2.8s, the node with value 3 turns green.\n- At 3.5s, the node with value 7 turns green.\n\nStep 2: Identify the final highlighted node.\n- The last frame (3.5s) highlights the node with value 7.\n\nStep 3: Match the value to the given options.\n- The value is 7, which corresponds to option C.\n\nStep 4: Determine the most relevant time segment.\n- The final frame (3.5s) is when the node with value 7 becomes green (highlighted), so the relevant time segment is 2.8s-3.5s.\n\nFinal Answer:\nThe value of the tree node that becomes highlighted in the final frame of the video is 7.\n<segment>2.8s-3.5s</segment>",
+      "The video shows a tree structure with nodes labeled 1 through 8. The highlighting process starts at the root node (5) and sequentially highlights each node in a specific order. The root node (5) is highlighted first, then its children (2 and 8), and so on. The final frame shows the node labeled '7' highlighted in green, which is the last node to be highlighted in the sequence shown. Therefore, the value of the tree node that becomes highlighted in the final frame is 7.\n\n<segment>16.0s-19.0s</segment>"
+    ]
+  },
+  {
+    "source_id": "validation_829",
+    "sample_id": "mc_eval_00000003",
+    "manifest_index": 3,
+    "video_pt_path": "/tmp/evo_window_real10_test/preprocessed_videos/7e8f26f511399451.pt",
+    "videos": [
+      "/home/ssun/eval/data/MMVU/videos/Clinical_Medicine/29.mp4"
+    ],
+    "window_start_frame": 8,
+    "window_end_frame_exclusive": 16,
+    "window_source_frame_indices": [
+      191,
+      215,
+      239,
+      263,
+      287,
+      311,
+      335,
+      359
+    ],
+    "segment_start_sec": 7.958333333333333,
+    "segment_end_sec": 14.958333333333334,
+    "question_type": "multiple choice",
+    "question": "Which structure is labeled at the point where the esophagus connects to the stomach in the video?\nA. Pyloric sphincter\nB. Cardiac sphincter\nC. Ileocecal valve\nD. Duodenum",
+    "answer": "B",
+    "score": 0.5,
+    "problem_id": "mc_eval_00000003",
+    "problem": "Which structure is labeled at the point where the esophagus connects to the stomach in the video?\nA. Pyloric sphincter\nB. Cardiac sphincter\nC. Ileocecal valve\nD. Duodenum",
+    "data_type": "video",
+    "problem_type": "multiple choice",
+    "preprocessed_video": "/tmp/evo_window_real10_test/preprocessed_videos/7e8f26f511399451.pt",
+    "target_segment": [
+      7.958333333333333,
+      14.958333333333334
+    ],
+    "questioner_answer": "B",
+    "majority_count": 5,
+    "valid_answer_count": 5,
+    "candidate_answers": [
+      "B",
+      "",
+      "B",
+      "",
+      "",
+      "B",
+      "",
+      "B",
+      "B",
+      ""
+    ],
+    "candidate_segments": [
+      [
+        12.0,
+        14.5
+      ],
+      [
+        11.0,
+        15.0
+      ],
+      [
+        12.0,
+        14.0
+      ],
+      [
+        12.0,
+        14.5
+      ],
+      [
+        12.0,
+        14.5
+      ],
+      [
+        12.0,
+        14.0
+      ],
+      [
+        12.0,
+        15.0
+      ],
+      [
+        12.0,
+        14.5
+      ],
+      [
+        12.0,
+        14.0
+      ],
+      [
+        12.0,
+        13.0
+      ]
+    ],
+    "num_candidates": 10,
+    "solver_responses": [
+      "The video explicitly labels the structure at the point where the esophagus connects to the stomach as the \"cardiac sphincter\" at 0:12. The other options are not mentioned or shown in this portion of the video. The relevant time segment is <segment>12.0s-14.5s</segment>.\nFinal Answer: \\boxed{B}",
+      "Step 1: At 0:09, the video introduces the esophagus with an arrow pointing to its connection with the stomach.\nStep 2: At 0:11, a label appears explicitly pointing to the junction between the esophagus and the stomach, and the text reads \"cardiac sphincter\".\nStep 3: The cardiac sphincter is the muscular ring that separates the esophagus from the stomach. This is consistent with the anatomical definition and the labeling in the video.\nStep 4: Therefore, the correct answer is B. Cardiac sphincter.\nStep 5: The most relevant segment for this question is when the label is introduced, which is at 0:11.\n<segment>11.0s-15.0s</segment>",
+      "Step 1: Review the video frames from 0:10 to 0:14.\n- At 0:10, the esophagus is labeled with an arrow pointing to the top opening of the stomach.\n- At 0:12, the label \"cardiac sphincter\" appears with an arrow pointing to the same area, indicating the structure at the junction of the esophagus and stomach.\n\nStep 2: Determine the correct answer.\n- The cardiac sphincter is the muscular ring that regulates the passage of food from the esophagus into the stomach.\n\nStep 3: Confirm the answer.\n- The structure labeled at the connection point is indeed the cardiac sphincter.\n\nStep 4: Determine the most relevant time segment.\n- The labeling occurs in the frames from 0:12 to 0:14, so the most relevant segment is 0:12-0:14.\n\nFinal Answer:\n\\boxed{B} and <segment>12.0s-14.0s</segment>",
+      "At 0:12, the video explicitly labels the structure at the junction of the esophagus and the stomach as the \"cardiac sphincter\" with an arrow pointing to it. This is the correct anatomical term for that structure.\n\nThe most relevant time segment to answer this question is when the label appears, which is at 0:12.\n\n<segment>12.0s-14.5s</segment>",
+      "In the video, at 0:12, a label appears with an arrow pointing to the junction where the esophagus meets the stomach. The label clearly reads \"cardiac sphincter.\" This is the structure that regulates the passage of food from the esophagus into the stomach. The other options—pyloric sphincter, ileocecal valve, and duodenum—are unrelated to this specific anatomical junction.\n\n<segment>12.0s-14.5s</segment>",
+      "Step 1: At 0:10, the video introduces an esophagus with an arrow pointing to it, indicating its location. \nStep 2: At 0:12, the video adds another label, “cardiac sphincter,” with an arrow pointing to the junction where the esophagus connects to the stomach. This is the point of connection between the two structures. \nStep 3: The cardiac sphincter, also known as the gastroesophageal junction, is the muscular valve located at the junction of the stomach and the esophagus.\nStep 4: Therefore, the structure labeled at the point where the esophagus connects to the stomach is the cardiac sphincter. \nStep 5: The video time segment that is most relevant to answering this question is 0:12–0:14, since that is when the cardiac sphincter is labeled. \n\nFinal Answer: \\boxed{B} with <segment>12.0s-14.0s</segment>",
+      "In the video, at 0:12, the label \"cardiac sphincter\" appears with an arrow pointing to the junction between the esophagus and the stomach, indicating that this is the structure being referred to. The other options (pyloric sphincter, ileocecal valve, duodenum) are not depicted or labeled in this segment and refer to other parts of the gastrointestinal tract.\n\n<segment>12.0s-15.0s</segment>",
+      "At 0:12, the video clearly labels the structure at the junction of the esophagus and stomach as “cardiac sphincter.” This is the correct anatomical term for the valve between the esophagus and stomach, and it is explicitly shown and labeled in the video. The other options (pyloric sphincter, ileocecal valve, duodenum) are not shown or labeled in this segment and are unrelated to the esophagus-stomach junction.\n\nTherefore, the correct answer is B. Cardiac sphincter.\n\nThe most relevant time segment for this answer is <segment>12.0s-14.5s</segment>.\n\n\\boxed{B}",
+      "Step 1: At 0:12, the video explicitly labels “cardiac sphincter” with an arrow pointing to the junction where the esophagus meets the stomach. This is a direct indication of the correct anatomical structure.\n\nStep 2: The other options (pyloric sphincter, ileocecal valve, duodenum) are unrelated to the esophagus-stomach junction. The pyloric sphincter is at the stomach's exit into the duodenum, while the ileocecal valve is between the ileum and the cecum in the large intestine, and the duodenum is the first segment of the small intestine — none of which are labeled or relevant to the esophagus-stomach junction.\n\nStep 3: The video shows the esophagus and cardiac sphincter clearly labeled in the time segment from 0:12 to 0:14, making this the most relevant timeframe for answering.\n\nFinal Answer: \\boxed{B} and <segment>12.0s-14.0s</segment>",
+      "Step 1: The video segment from 0:10 to 0:13 visually labels the structure at the junction between the esophagus and the stomach.\n\nStep 2: At 0:10, the word \"esophagus\" appears with an arrow pointing to the top opening of the stomach.\n\nStep 3: At 0:12, the word \"cardiac sphincter\" appears with an arrow pointing to the same junction, which is where the esophagus meets the stomach.\n\nStep 4: The cardiac sphincter is the correct anatomical term for this structure, which controls the passage of food from the esophagus into the stomach.\n\nStep 5: Therefore, the structure labeled at the point where the esophagus connects to the stomach is the cardiac sphincter.\n\nStep 6: The most relevant time segment for answering this question is when the cardiac sphincter is labeled, which occurs between 0:12 and 0:13.\n\nFinal Answer: \\boxed{<segment>12.0s-13.0s</segment>}"
+    ]
+  }
+]

@@ -1,188 +1,377 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
-Description:
-    This script evaluates generated answers against golden answers for a set of questions.
-    It uses vLLM for efficient generation and a robust, timed grading mechanism to score the results.
-    The script is designed to run as a batch job, often in parallel across multiple GPUs.
+#!/usr/bin/env python3
+"""Build EvoVid Solver pseudo-labels from full-video Solver responses.
 
-Refactoring Notes:
-    - Replaced 'timeout-decorator' with the thread-safe 'stopit' library to provide robust
-      timeout protection for the grading function without causing errors.
-    - Optimized the answer comparison logic to perform cheap checks first, only calling the
-      expensive grading function when necessary.
-    - Improved error handling and code structure for better readability and stability.
+The Questioner sees one contiguous frame window when it creates a question, but
+the frozen/current Solver must answer that question from the full preprocessed
+video.  This module samples M Solver responses, obtains a majority-voted answer,
+and keeps the window timestamps attached for the later temporal-IoU reward.
+"""
 
-Setup:
-    pip install stopit transformers torch vllm
+from __future__ import annotations
 
-Example Usage (in a shell script):
-    # This would run the script for GPU 0, with a specific model and save name.
-    CUDA_VISIBLE_DEVICES=0 python evaluate.py --model "Qwen/Qwen3-4B-Base" --suffix 0 --save_name "my_experiment" &
-'''
-
-import json
-import vllm
-from transformers import AutoTokenizer
 import argparse
-import re
+import json
+import math
 import os
-import stopit  # Use the robust, thread-safe stopit library for timeouts
+import re
+from pathlib import Path
+from typing import Any
+
+import stopit
+import torch
+import vllm
+from jinja2 import Template
 from mathruler.grader import extract_boxed_content, grade_answer
+from transformers import AutoProcessor, AutoTokenizer
+from transformers.video_utils import VideoMetadata
 
-# --- Argument Parsing ---
-parser = argparse.ArgumentParser(description="Evaluate generated questions using vLLM.")
-parser.add_argument("--model", type=str, default="Qwen/Qwen3-4B-Base", help="Path to the model in Hugging Face format.")
-parser.add_argument("--num_samples", type=int, default=9, help="Number of candidate answers to generate per question (n).")
-parser.add_argument("--suffix", type=str, default="0", help="A unique suffix for file naming, often the GPU index.")
-parser.add_argument("--save_name", type=str, required=True, help="A base name for input and output files.")
-args = parser.parse_args()
 
-# --- Constants and Paths ---
-STORAGE_PATH = os.getenv("STORAGE_PATH", "/apdcephfs_sh2/share_300000800/user/chengchuang")
-INPUT_FILE = f"{STORAGE_PATH}/generated_question/{args.save_name}_{args.suffix}.json"
-OUTPUT_FILE = f"{STORAGE_PATH}/generated_question/{args.save_name}_{args.suffix}_results.json"
-
-# --- Timeout-Protected Grading Function ---
-@stopit.threading_timeoutable(default='TIMED_OUT')
-def grade_answer_with_timeout(res1, res2):
-    """
-    Wraps the mathruler 'grade_answer' function with a timeout.
-    If the function takes too long, it returns 'TIMED_OUT' instead of hanging.
-    """
-    # The actual timeout value is passed as a keyword argument on each call.
-    return grade_answer(res1, res2)
-
-# --- Main Script Logic ---
-
-# 1. Load and Prepare Data
-print(f"[{args.suffix}] Loading data from: {INPUT_FILE}")
-try:
-    with open(INPUT_FILE, "r") as f:
-        data = json.load(f)
-    # Clean up the input file immediately after loading to save space
-    os.remove(INPUT_FILE)
-except FileNotFoundError:
-    print(f"[{args.suffix}] ERROR: Input file not found. Exiting.")
-    exit()
-
-# Filter data into questions that need processing
-correct_data = [item for item in data if item.get('score') == 0]
-if not correct_data:
-    print(f"[{args.suffix}] No new questions to process (score=0). Exiting.")
-    # Create an empty results file to signal completion
-    with open(OUTPUT_FILE, "w") as f:
-        json.dump([], f)
-    exit()
-
-questions = [item["question"] for item in correct_data]
-answers = [item["answer"] for item in correct_data]
-print(f"[{args.suffix}] Found {len(questions)} questions to process.")
-
-# 2. Initialize Model and Tokenizer
-print(f"[{args.suffix}] Initializing vLLM for model: {args.model}")
-tokenizer = AutoTokenizer.from_pretrained(args.model)
-model = vllm.LLM(
-    model=args.model,
-    tokenizer=args.model,
-    gpu_memory_utilization=0.85,
-    seed=int(args.suffix),
+_SEGMENT_PATTERN = re.compile(
+    r"<segment>\s*"
+    r"([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*s?\s*[-\u2013\u2014]\s*"
+    r"([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*s?\s*</segment>",
+    re.IGNORECASE,
 )
-sample_params = vllm.SamplingParams(
-    max_tokens=4096,
-    temperature=1.0,
-    top_p=1.0,
-    top_k=40,
-    stop_token_ids=[tokenizer.eos_token_id],
-    n=args.num_samples,
-)
+_SEGMENT_TAG_PATTERN = re.compile(r"</?segment\b", re.IGNORECASE)
 
-# 3. Generate Responses
-print(f"[{args.suffix}] Generating {args.num_samples} samples for each question...")
-chats = [[{"role": "system", "content": "Please reason step by step, and put your final answer within \\boxed{}."},{"role": "user", "content": q}] for q in questions]
 
-if tokenizer.chat_template:
-    prompts = [tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True, add_special_tokens=True) for chat in chats]
-else:
-    prompts = ["system: " + chat[0]["content"] + '\n' + "user: " + chat[1]["content"] for chat in chats]
+@stopit.threading_timeoutable(default="TIMED_OUT")
+def grade_answer_with_timeout(answer_a: str, answer_b: str) -> bool:
+    """Bound the symbolic answer-equivalence fallback."""
+    return grade_answer(answer_a, answer_b)
 
-responses = model.generate(prompts, sampling_params=sample_params, use_tqdm=True)
-print(f"[{args.suffix}] Generation complete.")
 
-# 4. Process and Grade Responses
-results_all = []
-print(f"[{args.suffix}] Grading responses...")
-for response, golden_answer, question in zip(responses, answers, questions):
+def _load_rows(path: Path) -> list[dict[str, Any]]:
+    with path.open(encoding="utf-8") as handle:
+        payload = json.load(handle)
+    if not isinstance(payload, list) or not all(isinstance(row, dict) for row in payload):
+        raise TypeError(f"{path} must contain a JSON list of objects.")
+    return payload
+
+
+def _write_rows(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    with temporary.open("w", encoding="utf-8") as handle:
+        json.dump(rows, handle, ensure_ascii=False, indent=2)
+    temporary.replace(path)
+
+
+def _load_prompt_template(path: Path) -> Template:
+    source = path.read_text(encoding="utf-8").strip()
+    if not source:
+        raise ValueError(f"Solver prompt template is empty: {path}")
+    return Template(source)
+
+
+def _render_solver_instruction(template: Template, question: str) -> str:
+    instruction = template.render(content=question, problem=question).strip()
+    if instruction.startswith("<video>"):
+        instruction = instruction[len("<video>") :].lstrip()
+    if not instruction:
+        raise ValueError("Rendered Solver prompt is empty.")
+    return instruction
+
+
+def _metadata_to_vllm(metadata: dict[str, Any], frames: Any) -> VideoMetadata:
+    frame_count = int(frames.shape[0]) if hasattr(frames, "shape") else len(frames)
+    return VideoMetadata(
+        total_num_frames=metadata.get("total_num_frames", frame_count),
+        fps=metadata.get("fps"),
+        frames_indices=metadata.get("frames_indices"),
+        video_backend=metadata.get("video_backend"),
+        width=metadata.get("width"),
+        height=metadata.get("height"),
+        duration=metadata.get("duration"),
+    )
+
+
+def _target_segment(row: dict[str, Any]) -> list[float]:
+    segment = row.get("target_segment")
+    if isinstance(segment, (list, tuple)) and len(segment) == 2:
+        start, end = segment
+    else:
+        start, end = row.get("segment_start_sec"), row.get("segment_end_sec")
+
+    if isinstance(start, bool) or isinstance(end, bool):
+        raise ValueError("Target segment endpoints must be numeric seconds.")
     try:
-        # Extract the boxed content from all generated samples
-        results = [extract_boxed_content(output.text) for output in response.outputs]
-        results = [res for res in results if res] # Filter out None/empty results
+        start_value, end_value = float(start), float(end)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Generated question is missing numeric segment timestamps.") from exc
+    if not math.isfinite(start_value) or not math.isfinite(end_value):
+        raise ValueError("Target segment endpoints must be finite.")
+    if start_value < 0 or end_value <= start_value:
+        raise ValueError(f"Invalid target segment [{start_value}, {end_value}].")
+    return [start_value, end_value]
 
-        if not results:
-            print(f"[{args.suffix}] WARNING: No valid boxed answers found for question: '{question[:50]}...'")
+
+def _load_full_video(row: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
+    video_pt_path = row.get("video_pt_path") or row.get("preprocessed_video")
+    if not isinstance(video_pt_path, str) or not video_pt_path:
+        raise ValueError("Generated question has no video_pt_path or preprocessed_video.")
+    path = Path(video_pt_path).expanduser().resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"Preprocessed video artifact not found: {path}")
+
+    artifact = torch.load(path, map_location="cpu", weights_only=False)
+    if not isinstance(artifact, dict) or "frames" not in artifact or "metadata" not in artifact:
+        raise KeyError(f"{path} must contain 'frames' and 'metadata'.")
+    frames = artifact["frames"]
+    frame_count = int(frames.shape[0]) if hasattr(frames, "shape") else len(frames)
+    if frame_count < 1:
+        raise ValueError(f"Preprocessed video contains no frames: {path}")
+    return frames, dict(artifact["metadata"])
+
+
+def _build_video_input(
+    row: dict[str, Any],
+    *,
+    processor: Any,
+    tokenizer: Any,
+    prompt_template: Template,
+) -> dict[str, Any]:
+    question = row.get("question")
+    if not isinstance(question, str) or not question.strip():
+        raise ValueError("Generated question text is empty.")
+    _target_segment(row)
+    frames, metadata = _load_full_video(row)
+    instruction = _render_solver_instruction(prompt_template, question.strip())
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "video"},
+                {"type": "text", "text": instruction},
+            ],
+        }
+    ]
+    prompt = processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
+    return {
+        # Keep one raw video placeholder. vLLM performs the visual-token
+        # expansion exactly once when it consumes multi_modal_data.
+        "prompt_token_ids": tokenizer.encode(prompt, add_special_tokens=False),
+        "multi_modal_data": {"video": [(frames, _metadata_to_vllm(metadata, frames))]},
+        "mm_processor_kwargs": {"do_sample_frames": False, "do_resize": False},
+    }
+
+
+def _extract_candidate_answer(text: str) -> str:
+    answer = extract_boxed_content(text)
+    if answer is None:
+        return ""
+    normalized = str(answer).strip()
+    if not normalized or normalized.lower() == "none":
+        return ""
+    if _SEGMENT_TAG_PATTERN.search(normalized):
+        return ""
+    return normalized
+
+
+def _extract_candidate_segment(text: str) -> list[float] | None:
+    matches = list(_SEGMENT_PATTERN.finditer(text))
+    if not matches:
+        return None
+    start, end = (float(value) for value in matches[-1].groups())
+    if not math.isfinite(start) or not math.isfinite(end) or start < 0 or end <= start:
+        return None
+    return [start, end]
+
+
+def _answers_equivalent(answer_a: str, answer_b: str) -> bool:
+    if answer_a.strip().casefold() == answer_b.strip().casefold():
+        return True
+    for left, right in ((answer_a, answer_b), (answer_b, answer_a)):
+        try:
+            result = grade_answer_with_timeout(left, right, timeout=10)
+        except Exception as exc:
+            print(f"[grader] comparison failed: {exc}")
             continue
+        if result != "TIMED_OUT" and bool(result):
+            return True
+    return False
 
-        answer_counts = {}
-        for result in results:
-            matched = False
-            for existing_answer in answer_counts:
-                # OPTIMIZATION: Perform cheap string comparisons first.
-                if result == existing_answer or ('no ' in result.lower() and 'no ' in existing_answer.lower()):
-                    answer_counts[existing_answer] += 1
-                    matched = True
-                    break
-                
-                # If cheap checks fail, use the expensive, timed grader.
-                # Check both directions (A vs B and B vs A).
-                match_1 = grade_answer_with_timeout(result, existing_answer, timeout=10)
-                if match_1 == 'TIMED_OUT':
-                    print(f"[{args.suffix}] GRADER TIMEOUT on: '{result[:30]}...' vs '{existing_answer[:30]}...'")
-                    continue # Skip to the next existing_answer
-                
-                if match_1:
-                    answer_counts[existing_answer] += 1
-                    matched = True
-                    break
 
-                match_2 = grade_answer_with_timeout(existing_answer, result, timeout=10)
-                if match_2 == 'TIMED_OUT':
-                    print(f"[{args.suffix}] GRADER TIMEOUT on: '{existing_answer[:30]}...' vs '{result[:30]}...'")
-                    continue
-
-                if match_2:
-                    answer_counts[existing_answer] += 1
-                    matched = True
-                    break
-
-            if not matched:
-                answer_counts[result] = 1
-
-        if not answer_counts:
+def score_solver_responses(response_texts: list[str]) -> dict[str, Any]:
+    """Return majority answer and confidence with M as the fixed denominator."""
+    candidate_answers = [_extract_candidate_answer(text) for text in response_texts]
+    candidate_segments = [_extract_candidate_segment(text) for text in response_texts]
+    answer_counts: dict[str, int] = {}
+    for candidate in candidate_answers:
+        if not candidate:
             continue
+        matched_answer = next(
+            (existing for existing in answer_counts if _answers_equivalent(candidate, existing)),
+            None,
+        )
+        if matched_answer is None:
+            answer_counts[candidate] = 1
+        else:
+            answer_counts[matched_answer] += 1
 
-        # Determine the majority answer and its score
+    if answer_counts:
         majority_answer = max(answer_counts, key=answer_counts.get)
-        max_count = answer_counts[majority_answer]
-        score = max_count / len(results)
+        majority_count = answer_counts[majority_answer]
+    else:
+        majority_answer = ""
+        majority_count = 0
+    confidence = majority_count / len(response_texts) if response_texts else 0.0
+    return {
+        "answer": majority_answer,
+        "score": float(confidence),
+        "majority_count": majority_count,
+        "valid_answer_count": sum(bool(answer) for answer in candidate_answers),
+        "candidate_answers": candidate_answers,
+        "candidate_segments": candidate_segments,
+    }
 
-        # Skip certain question types that are hard to grade automatically
-        if "证明" in question or 'box' in question.lower() or 'text' in majority_answer.lower():
+
+def _common_result_fields(row: dict[str, Any]) -> dict[str, Any]:
+    result = dict(row)
+    question = str(row.get("question", ""))
+    video_pt_path = row.get("video_pt_path") or row.get("preprocessed_video")
+    result.update(
+        {
+            "problem_id": row.get("sample_id", row.get("source_id", row.get("manifest_index"))),
+            "problem": question,
+            "data_type": "video",
+            "problem_type": row.get("question_type", ""),
+            "preprocessed_video": video_pt_path,
+            "target_segment": _target_segment(row),
+            "questioner_answer": row.get("answer", ""),
+        }
+    )
+    return result
+
+
+def _error_result(row: dict[str, Any], error: Exception | str) -> dict[str, Any]:
+    result = dict(row)
+    result.update(
+        {
+            "problem": row.get("question", ""),
+            "questioner_answer": row.get("answer", ""),
+            "answer": "",
+            "score": -1,
+            "majority_count": 0,
+            "valid_answer_count": 0,
+            "candidate_answers": [],
+            "candidate_segments": [],
+            "error": str(error),
+        }
+    )
+    return result
+
+
+def evaluate(args: argparse.Namespace) -> list[dict[str, Any]]:
+    rows = [row for row in _load_rows(args.input_file) if row.get("score") == 0]
+    if not rows:
+        _write_rows(args.output_file, [])
+        return []
+
+    prompt_template = _load_prompt_template(args.prompt_template)
+    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+    processor = AutoProcessor.from_pretrained(args.model, trust_remote_code=True)
+    seed = args.seed if args.seed is not None else int(args.suffix) if args.suffix.isdigit() else 0
+    model = vllm.LLM(
+        model=args.model,
+        tokenizer=args.model,
+        gpu_memory_utilization=args.gpu_memory_utilization,
+        max_model_len=args.max_model_len,
+        seed=seed,
+        disable_mm_preprocessor_cache=True,
+        limit_mm_per_prompt={"video": 1},
+    )
+    sampling_params = vllm.SamplingParams(
+        max_tokens=args.max_tokens,
+        temperature=args.temperature,
+        top_p=args.top_p,
+        top_k=args.top_k,
+        stop_token_ids=[tokenizer.eos_token_id],
+        n=args.num_samples,
+    )
+
+    results: list[dict[str, Any] | None] = [None] * len(rows)
+    for batch_start in range(0, len(rows), args.batch_size):
+        batch_indices = range(batch_start, min(batch_start + args.batch_size, len(rows)))
+        valid_indices: list[int] = []
+        video_inputs: list[dict[str, Any]] = []
+        for index in batch_indices:
+            row = rows[index]
+            try:
+                video_inputs.append(
+                    _build_video_input(
+                        row,
+                        processor=processor,
+                        tokenizer=tokenizer,
+                        prompt_template=prompt_template,
+                    )
+                )
+                valid_indices.append(index)
+            except Exception as exc:
+                results[index] = _error_result(row, exc)
+
+        if not video_inputs:
             continue
+        responses = model.generate(video_inputs, sampling_params=sampling_params, use_tqdm=True)
+        for index, response in zip(valid_indices, responses):
+            row = rows[index]
+            response_texts = [output.text for output in response.outputs]
+            scored = score_solver_responses(response_texts)
+            result = _common_result_fields(row)
+            result.update(scored)
+            result["num_candidates"] = len(response_texts)
+            if args.save_raw_responses:
+                result["solver_responses"] = response_texts
+            results[index] = result
 
-        results_all.append({
-            "question": question,
-            "answer": majority_answer,
-            "score": score,
-            'results': results
-        })
+    finalized = [
+        result if result is not None else _error_result(rows[index], "No evaluation result was produced.")
+        for index, result in enumerate(results)
+    ]
+    _write_rows(args.output_file, finalized)
+    return finalized
 
-    except Exception as e:
-        print(f"[{args.suffix}] CRITICAL ERROR processing question '{question[:50]}...': {e}")
-        continue
 
-# 5. Save Final Results
-print(f"[{args.suffix}] Processed {len(results_all)} questions. Saving results to: {OUTPUT_FILE}")
-with open(OUTPUT_FILE, "w") as f:
-    json.dump(results_all, f, indent=4)
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Evaluate generated video questions with the full video and construct Solver pseudo-labels."
+    )
+    parser.add_argument("--model", required=True)
+    parser.add_argument("--save_name", required=True)
+    parser.add_argument("--suffix", default="0")
+    parser.add_argument("--input_file", type=Path)
+    parser.add_argument("--output_file", type=Path)
+    parser.add_argument("--prompt_template", type=Path, default=Path("examples/format_prompt/solver.jinja"))
+    parser.add_argument("--num_samples", type=int, default=10)
+    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--max_tokens", type=int, default=4096)
+    parser.add_argument("--max_model_len", type=int, default=8192)
+    parser.add_argument("--gpu_memory_utilization", type=float, default=0.8)
+    parser.add_argument("--temperature", type=float, default=1.0)
+    parser.add_argument("--top_p", type=float, default=1.0)
+    parser.add_argument("--top_k", type=int, default=40)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--save_raw_responses", action="store_true")
+    args = parser.parse_args()
 
-print(f"[{args.suffix}] Script finished.")
+    if args.num_samples < 1 or args.batch_size < 1:
+        parser.error("--num_samples and --batch_size must be positive.")
+    storage_path = Path(os.getenv("STORAGE_PATH", "/apdcephfs_sh2/share_300000800/user/chengchuang"))
+    generated_dir = storage_path / "generated_question"
+    if args.input_file is None:
+        args.input_file = generated_dir / f"{args.save_name}_{args.suffix}.json"
+    if args.output_file is None:
+        args.output_file = generated_dir / f"{args.save_name}_{args.suffix}_results.json"
+    return args
+
+
+if __name__ == "__main__":
+    parsed_args = parse_args()
+    evaluated = evaluate(parsed_args)
+    retained = sum(0.3 <= float(row.get("score", -1)) <= 0.8 for row in evaluated)
+    print(
+        json.dumps(
+            {"total": len(evaluated), "in_score_band": retained, "output": str(parsed_args.output_file)},
+            ensure_ascii=False,
+        )
+    )
