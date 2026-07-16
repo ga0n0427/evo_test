@@ -52,4 +52,4 @@ for ((i = 1; i <= NUM_ITERATIONS; i++)); do
     SOLVER_MERGED="${SOLVER_ACTOR}/huggingface"
 done
 
-bash evaluation/evaluate.bash "${SOLVER_MERGED}"
+bash evaluation/evaluate_aggregated.bash "${SOLVER_MERGED}"
