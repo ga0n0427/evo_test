@@ -63,6 +63,12 @@ parser.add_argument(
 )
 parser.add_argument("--max_tokens", type=int, default=4096)
 parser.add_argument("--num_candidates", type=int, default=10)
+parser.add_argument(
+    "--max_model_len",
+    type=int,
+    default=8192,
+    help="Maximum sequence length used to size the vLLM KV cache.",
+)
 args = parser.parse_args()
 
 
@@ -73,6 +79,7 @@ model = vllm.LLM(
     model=args.model_path,
     tokenizer=args.model_path,
     gpu_memory_utilization=args.gpu_mem_util,
+    max_model_len=args.max_model_len,
     disable_mm_preprocessor_cache=True,
     limit_mm_per_prompt={"video": 1},
 )
@@ -195,17 +202,11 @@ def _build_video_vllm_input(task: dict[str, Any]) -> dict[str, Any]:
         },
     ]
     prompt = processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
-    model_inputs = processor(
-        text=[prompt],
-        videos=[frames],
-        add_special_tokens=False,
-        video_metadata=[metadata],
-        return_tensors="pt",
-        do_resize=False,
-        do_sample_frames=False,
-    )
     return {
-        "prompt_token_ids": model_inputs["input_ids"][0].tolist(),
+        # Keep the raw, single video placeholder here. vLLM owns the only
+        # expansion from that placeholder to frame-dependent visual tokens.
+        # This mirrors RLHFDataset.raw_prompt_ids used by the training rollout.
+        "prompt_token_ids": tokenizer.encode(prompt, add_special_tokens=False),
         "multi_modal_data": {"video": [(frames, _metadata_to_vllm(metadata, frames))]},
         "mm_processor_kwargs": {"do_sample_frames": False, "do_resize": False},
     }

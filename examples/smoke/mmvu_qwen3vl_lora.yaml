@@ -1,0 +1,116 @@
+data:
+  train_files: /tmp/evo_test_smoke/mmvu_preprocessed.jsonl
+  val_files: /tmp/evo_test_smoke/mmvu_preprocessed.jsonl
+  prompt_key: problem
+  answer_key: answer
+  image_key: images
+  video_key: videos
+  image_dir: null
+  use_preprocessed_videos: true
+  video_source_mode: preprocessed_only
+  preprocessed_video_dir: /tmp/evo_test_smoke/preprocessed_videos
+  val_preprocessed_video_dir: /tmp/evo_test_smoke/preprocessed_videos
+  video_fps: 0.5
+  video_max_frames: 8
+  video_min_pixels: 50176
+  video_max_pixels: 50176
+  video_total_pixels: 401408
+  max_prompt_length: 4096
+  max_response_length: 256
+  rollout_batch_size: 1
+  val_batch_size: 1
+  format_prompt: examples/format_prompt/questioner.jinja
+  shuffle: false
+  filter_overlong_prompts: false
+
+algorithm:
+  adv_estimator: grpo
+  disable_kl: true
+  use_kl_loss: false
+  online_filtering: false
+
+worker:
+  actor:
+    global_batch_size: 1
+    micro_batch_size_per_device_for_update: 1
+    micro_batch_size_per_device_for_experience: 1
+    ppo_epochs: 1
+    padding_free: true
+    dynamic_batching: false
+    use_torch_compile: false
+    model:
+      model_path: Qwen/Qwen3-VL-4B-Instruct
+      enable_gradient_checkpointing: true
+      trust_remote_code: false
+      freeze_vision_tower: false
+      lora:
+        rank: 8
+        alpha: 16
+        target_modules: all-linear
+        exclude_modules: ".*visual.*"
+        init_adapter_path: null
+    optim:
+      lr: 1.0e-5
+      weight_decay: 0.0
+      strategy: adamw
+      lr_warmup_ratio: 0.0
+    fsdp:
+      enable_full_shard: true
+      enable_cpu_offload: false
+      enable_rank0_init: true
+      torch_dtype: bf16
+    offload:
+      offload_params: true
+      offload_optimizer: true
+
+  rollout:
+    n: 2
+    temperature: 1.0
+    top_p: 0.95
+    tensor_parallel_size: 1
+    gpu_memory_utilization: 0.65
+    enforce_eager: true
+    enable_chunked_prefill: false
+    max_model_len: 4608
+    max_num_batched_tokens: 4608
+    limit_images: 1
+    disable_tqdm: false
+    val_override_config:
+      temperature: 1.0
+      top_p: 0.95
+      n: 1
+
+  ref:
+    fsdp:
+      enable_full_shard: true
+      enable_cpu_offload: false
+      enable_rank0_init: true
+    offload:
+      offload_params: true
+
+  reward:
+    reward_function: examples/reward_function/evo_vid_questioner_reward.py:compute_score
+    reward_function_kwargs:
+      solver_samples: 2
+      lambda_temporal: 1.0
+      request_timeout_s: 60.0
+      cleanup_result_files: true
+
+trainer:
+  total_epochs: 1
+  max_steps: 1
+  project_name: evo_test_smoke
+  experiment_name: mmvu_qwen3vl_lora
+  logger: ["console", "file"]
+  nnodes: 1
+  n_gpus_per_node: 1
+  val_freq: -1
+  val_before_train: false
+  val_only: false
+  val_generations_to_log: 2
+  save_freq: 1
+  save_limit: 1
+  save_model_only: true
+  save_checkpoint_path: /tmp/evo_test_smoke/checkpoints
+  load_checkpoint_path: null
+  find_last_checkpoint: false

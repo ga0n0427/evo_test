@@ -7,7 +7,7 @@ mathruler
 numpy
 omegaconf
 pandas
-peft
+peft==0.18.1
 pillow
 pyarrow>=15.0.0
 pylatexenc

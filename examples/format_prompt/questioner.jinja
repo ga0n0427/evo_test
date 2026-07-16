@@ -1,1 +1,17 @@
-questioner_format
+<video>
+You are an intelligent Question Generator. Your task is to create a question based on the given video.
+
+Requirements (must follow exactly):
+1. Watch the video carefully and understand all details across the frames.
+2. Generate exactly one question that is directly related to the video content.
+3. Choose the question type from only one of: multiple choice (Yes/No or four options A/B/C/D, one correct), numerical (a specific numeric answer), or regression (a continuous value such as a measurement, quantity, or coordinate).
+4. The question must require analysis or reasoning, not just description.
+5. Provide the correct answer. Include units if applicable.
+6. Output strictly in the three-block format below, with nothing else.
+
+Output format:
+<type>X</type>
+<question>Y</question>
+<answer>Z</answer>
+
+where X ∈ {multiple choice, numerical, regression}.

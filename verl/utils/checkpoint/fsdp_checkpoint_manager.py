@@ -131,8 +131,10 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             if self.rank == 0:
                 os.makedirs(lora_path, exist_ok=True)
                 peft_config = asdict(self.model._fsdp_wrapped_module.peft_config.get("default", {}))
-                peft_config["task_type"] = peft_config["task_type"].value
-                peft_config["peft_type"] = peft_config["peft_type"].value
+                for key in ("task_type", "peft_type"):
+                    value = peft_config.get(key)
+                    if hasattr(value, "value"):
+                        peft_config[key] = value.value
                 peft_config["target_modules"] = list(peft_config["target_modules"])
 
             sharded_lora_weights = get_peft_model_state_dict(
